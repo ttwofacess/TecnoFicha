@@ -8,6 +8,35 @@ export function esc(s) {
     .replace(/"/g,'&quot;');
 }
 
+/**
+ * Sanitizes a free-text search query.
+ * - Trims whitespace
+ * - Strips characters that have no place in a name/city search
+ *   (<, >, ", ', `, \, null bytes)
+ * - Collapses runs of whitespace to a single space
+ * - Enforces a maximum length to prevent DoS-style long inputs
+ */
+export function sanitizeSearchInput(raw) {
+  const MAX_LEN = 100;
+  return String(raw ?? '')
+    .trim()
+    .replace(/[<>"'`\\\x00]/g, '')   // strip dangerous / encoding chars
+    .replace(/\s+/g, ' ')             // collapse whitespace
+    .slice(0, MAX_LEN);
+}
+
+/**
+ * Sanitizes the province filter value.
+ * Accepts only values that consist of letters (including accented Spanish
+ * letters), spaces, and hyphens — exactly what Argentine province names
+ * require. Any value that does not match is replaced with '' (show all).
+ */
+export function sanitizeProvinceFilter(raw) {
+  const value = String(raw ?? '').trim();
+  // Allow letters (a-z, A-Z, accented Spanish vowels), spaces, and hyphens
+  return /^[a-zA-ZáéíóúüñÁÉÍÓÚÜÑ\s\-]{0,50}$/.test(value) ? value : '';
+}
+
 export function formatDate(d) {
   if (!d) return '';
   const [y,m,day] = d.split('-');
