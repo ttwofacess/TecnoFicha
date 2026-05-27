@@ -1,10 +1,10 @@
 import { repairs } from '../state.js';
-import { esc, formatDate, updateTopbarCount } from '../utils.js';
+import { esc, formatDate, updateTopbarCount, sanitizeSearchInput, sanitizeProvinceFilter } from '../utils.js';
 import { showDetail } from './detail.js';
 
 export function renderList() {
-  const q = (document.getElementById('search-input')?.value || '').toLowerCase();
-  const prov = document.getElementById('filter-prov')?.value || '';
+  const q = sanitizeSearchInput(document.getElementById('search-input')?.value).toLowerCase();
+  const prov = sanitizeProvinceFilter(document.getElementById('filter-prov')?.value);
 
   const filtered = repairs.filter(r => {
     const matchQ = !q || [r.nombre, r.ciudad, r.provincia, r.marca, r.modelo]
