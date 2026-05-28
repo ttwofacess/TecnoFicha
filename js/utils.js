@@ -26,6 +26,46 @@ export function sanitizeSearchInput(raw) {
 }
 
 /**
+ * Sanitizes a full-name input.
+ * - Trims whitespace
+ * - Strips characters that are not letters (including accented Spanish),
+ *   spaces, hyphens, apostrophes, or dots (for abbreviations like "Jr.")
+ * - Collapses runs of whitespace to a single space
+ * - Enforces a maximum length
+ */
+export function sanitizeNameInput(raw) {
+  const MAX_LEN = 80;
+  return String(raw ?? '')
+    .trim()
+    .replace(/[^a-zA-ZáéíóúüñÁÉÍÓÚÜÑ\s\-'.]/g, '') // keep only valid name chars
+    .replace(/\s+/g, ' ')                              // collapse whitespace
+    .slice(0, MAX_LEN);
+}
+
+/**
+ * Validates a sanitized full name.
+ * Returns a string with the error message, or null if the value is valid.
+ */
+export function validateName(value) {
+  const sanitized = sanitizeNameInput(value);
+  if (!sanitized) {
+    return 'El nombre es obligatorio.';
+  }
+  if (sanitized.length < 2) {
+    return 'El nombre debe tener al menos 2 caracteres.';
+  }
+  // Must contain at least one letter (not just punctuation/spaces)
+  if (!/[a-zA-ZáéíóúüñÁÉÍÓÚÜÑ]/.test(sanitized)) {
+    return 'El nombre debe contener letras.';
+  }
+  // Reject names that are all the same character repeated (e.g. "aaaaaaa")
+  if (/^(.)\1+$/.test(sanitized.replace(/\s/g, ''))) {
+    return 'Ingresá un nombre válido.';
+  }
+  return null;
+}
+
+/**
  * Sanitizes the province filter value.
  * Accepts only values that consist of letters (including accented Spanish
  * letters), spaces, and hyphens — exactly what Argentine province names
