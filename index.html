@@ -8,6 +8,20 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/main.css">
+<style>
+  .field-error {
+    display: block;
+    margin-top: 4px;
+    font-size: 0.78rem;
+    color: #e03e3e;
+    min-height: 1em;
+  }
+  #f-nombre[aria-invalid="true"] {
+    border-color: #e03e3e;
+    outline-color: #e03e3e;
+    box-shadow: 0 0 0 2px rgba(224, 62, 62, 0.15);
+  }
+</style>
 </head>
 <body>
 <div id="app">
@@ -42,7 +56,9 @@
           <div class="form-section-title">👤 Cliente</div>
           <div class="field">
             <label>Nombre completo <span class="req">*</span></label>
-            <input id="f-nombre" placeholder="Juan Pérez" autocomplete="off">
+            <input id="f-nombre" placeholder="Juan Pérez" autocomplete="off"
+                   maxlength="80" aria-describedby="f-nombre-error">
+            <span id="f-nombre-error" class="field-error" role="alert" style="display:none"></span>
           </div>
           <div class="field">
             <label>Teléfono</label>

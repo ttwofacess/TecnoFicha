@@ -1,5 +1,5 @@
 import { repairs, persist, setRepairs, uid, load } from '../state.js';
-import { FIELDS, toast, updateProvinceFilter } from '../utils.js';
+import { FIELDS, toast, updateProvinceFilter, sanitizeNameInput, validateName } from '../utils.js';
 import { showPage } from '../navigation.js';
 
 let editId = null;
@@ -27,6 +27,45 @@ export function initForm(id) {
       if (el && r[f] !== undefined && r[f] !== null) el.value = r[f];
     });
   }
+
+  // Live validation for nombre
+  const nombreEl = document.getElementById('f-nombre');
+  if (nombreEl) {
+    // Remove any previous listener by cloning the node
+    const fresh = nombreEl.cloneNode(true);
+    nombreEl.parentNode.replaceChild(fresh, nombreEl);
+    fresh.addEventListener('input', () => {
+      const sanitized = sanitizeNameInput(fresh.value);
+      // Silently apply sanitization while the user types
+      if (fresh.value !== sanitized) {
+        const pos = fresh.selectionStart;
+        fresh.value = sanitized;
+        fresh.setSelectionRange(pos, pos);
+      }
+      const error = validateName(sanitized);
+      setNameError(error);
+    });
+    fresh.addEventListener('blur', () => {
+      // On blur, always show the error if the field is invalid
+      const error = validateName(fresh.value);
+      setNameError(error);
+    });
+  }
+}
+
+function setNameError(msg) {
+  const errEl = document.getElementById('f-nombre-error');
+  const inputEl = document.getElementById('f-nombre');
+  if (!errEl || !inputEl) return;
+  if (msg) {
+    errEl.textContent = msg;
+    errEl.style.display = 'block';
+    inputEl.setAttribute('aria-invalid', 'true');
+  } else {
+    errEl.textContent = '';
+    errEl.style.display = 'none';
+    inputEl.removeAttribute('aria-invalid');
+  }
 }
 
 export function getField(id) {
@@ -34,7 +73,22 @@ export function getField(id) {
 }
 
 export function saveRepair() {
-  if (!getField('nombre') || !getField('ciudad') || !getField('provincia') || !getField('fecha') || !getField('marca')) {
+  // Validate and sanitize nombre first
+  const rawNombre = document.getElementById('f-nombre')?.value ?? '';
+  const cleanNombre = sanitizeNameInput(rawNombre);
+  const nameError = validateName(cleanNombre);
+  if (nameError) {
+    setNameError(nameError);
+    document.getElementById('f-nombre')?.focus();
+    toast(nameError);
+    return;
+  }
+  setNameError(null);
+  // Write the sanitized value back so getField() picks it up
+  const nombreEl = document.getElementById('f-nombre');
+  if (nombreEl) nombreEl.value = cleanNombre;
+
+  if (!getField('ciudad') || !getField('provincia') || !getField('fecha') || !getField('marca')) {
     toast('Completá los campos obligatorios (*)');
     return;
   }
