@@ -66,6 +66,64 @@ export function validateName(value) {
 }
 
 /**
+ * Sanitizes a city (ciudad) input.
+ * - Trims whitespace
+ * - Keeps letters (including accented Spanish), spaces, hyphens, dots,
+ *   and parentheses — enough for names like "Gral. Roca" or "San Martín (GBA)"
+ * - Collapses runs of whitespace to a single space
+ * - Enforces a maximum length
+ */
+export function sanitizeCityInput(raw) {
+  const MAX_LEN = 80;
+  return String(raw ?? '')
+    .trim()
+    .replace(/[^a-zA-ZáéíóúüñÁÉÍÓÚÜÑ\s\-'.()]/g, '')
+    .replace(/\s+/g, ' ')
+    .slice(0, MAX_LEN);
+}
+
+/**
+ * Validates a sanitized city name.
+ * Returns an error string or null if valid.
+ */
+export function validateCity(value) {
+  const sanitized = sanitizeCityInput(value);
+  if (!sanitized) return 'La ciudad es obligatoria.';
+  if (sanitized.length < 2) return 'La ciudad debe tener al menos 2 caracteres.';
+  if (!/[a-zA-ZáéíóúüñÁÉÍÓÚÜÑ]/.test(sanitized)) return 'La ciudad debe contener letras.';
+  return null;
+}
+
+/**
+ * Sanitizes a province (provincia) input.
+ * - Trims whitespace
+ * - Keeps letters (including accented Spanish), spaces, and hyphens
+ *   — sufficient for all 24 Argentine province names
+ * - Collapses runs of whitespace to a single space
+ * - Enforces a maximum length
+ */
+export function sanitizeProvinceInput(raw) {
+  const MAX_LEN = 60;
+  return String(raw ?? '')
+    .trim()
+    .replace(/[^a-zA-ZáéíóúüñÁÉÍÓÚÜÑ\s\-]/g, '')
+    .replace(/\s+/g, ' ')
+    .slice(0, MAX_LEN);
+}
+
+/**
+ * Validates a sanitized province name.
+ * Returns an error string or null if valid.
+ */
+export function validateProvince(value) {
+  const sanitized = sanitizeProvinceInput(value);
+  if (!sanitized) return 'La provincia es obligatoria.';
+  if (sanitized.length < 2) return 'La provincia debe tener al menos 2 caracteres.';
+  if (!/[a-zA-ZáéíóúüñÁÉÍÓÚÜÑ]/.test(sanitized)) return 'La provincia debe contener letras.';
+  return null;
+}
+
+/**
  * Sanitizes the province filter value.
  * Accepts only values that consist of letters (including accented Spanish
  * letters), spaces, and hyphens — exactly what Argentine province names

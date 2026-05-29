@@ -16,7 +16,9 @@
     color: #e03e3e;
     min-height: 1em;
   }
-  #f-nombre[aria-invalid="true"] {
+  #f-nombre[aria-invalid="true"],
+  #f-ciudad[aria-invalid="true"],
+  #f-provincia[aria-invalid="true"] {
     border-color: #e03e3e;
     outline-color: #e03e3e;
     box-shadow: 0 0 0 2px rgba(224, 62, 62, 0.15);
@@ -67,11 +69,15 @@
           <div class="field row2">
             <div>
               <label>Ciudad <span class="req">*</span></label>
-              <input id="f-ciudad" placeholder="Buenos Aires" autocomplete="off">
+              <input id="f-ciudad" placeholder="Buenos Aires" autocomplete="off"
+                     maxlength="80" aria-describedby="f-ciudad-error">
+              <span id="f-ciudad-error" class="field-error" role="alert" style="display:none"></span>
             </div>
             <div>
               <label>Provincia <span class="req">*</span></label>
-              <input id="f-provincia" placeholder="CABA" list="prov-list" autocomplete="off">
+              <input id="f-provincia" placeholder="CABA" list="prov-list" autocomplete="off"
+                     maxlength="60" aria-describedby="f-provincia-error">
+              <span id="f-provincia-error" class="field-error" role="alert" style="display:none"></span>
               <datalist id="prov-list">
                 <option>Buenos Aires</option><option>CABA</option><option>Catamarca</option>
                 <option>Chaco</option><option>Chubut</option><option>Córdoba</option>
