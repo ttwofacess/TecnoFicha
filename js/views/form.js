@@ -4,6 +4,7 @@ import {
   sanitizeNameInput, validateName,
   sanitizeCityInput, validateCity,
   sanitizeProvinceInput, validateProvince,
+  sanitizeTelInput, validateTel,
 } from '../utils.js';
 import { showPage } from '../navigation.js';
 
@@ -41,6 +42,9 @@ export function initForm(id) {
 
   // ── Live validation: provincia ───────────────────────────────────────────
   wireTextInput('f-provincia', sanitizeProvinceInput, validateProvince, setProvinceError);
+
+  // ── Live validation: teléfono ─────────────────────────────────────────────
+  wireTextInput('f-tel', sanitizeTelInput, validateTel, setTelError);
 }
 
 /**
@@ -88,6 +92,7 @@ function setFieldError(fieldId, msg) {
 const setNameError     = msg => setFieldError('f-nombre',    msg);
 const setCityError     = msg => setFieldError('f-ciudad',    msg);
 const setProvinceError = msg => setFieldError('f-provincia', msg);
+const setTelError      = msg => setFieldError('f-tel',       msg);
 
 // ── Field reader ─────────────────────────────────────────────────────────────
 
@@ -140,6 +145,20 @@ export function saveRepair() {
   } else if (!provError) {
     const provinciaEl = document.getElementById('f-provincia');
     if (provinciaEl) provinciaEl.value = cleanProvincia;
+  }
+
+  // teléfono (opcional)
+  const rawTel   = document.getElementById('f-tel')?.value ?? '';
+  const cleanTel = sanitizeTelInput(rawTel);
+  const telError = validateTel(cleanTel);
+  setTelError(telError);
+  if (telError && !hasError) {
+    document.getElementById('f-tel')?.focus();
+    toast(telError);
+    hasError = true;
+  } else if (!telError) {
+    const telEl = document.getElementById('f-tel');
+    if (telEl) telEl.value = cleanTel;
   }
 
   if (hasError) return;
