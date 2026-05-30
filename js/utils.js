@@ -116,6 +116,29 @@ export function validateProvince(value) {
   return null;
 }
 
+function isValidISODate(value) {
+  const [year, month, day] = value.split('-').map(Number);
+  if (!year || !month || !day) return false;
+  const date = new Date(value);
+  return date instanceof Date && !Number.isNaN(date.valueOf()) &&
+    date.getUTCFullYear() === year &&
+    date.getUTCMonth() + 1 === month &&
+    date.getUTCDate() === day;
+}
+
+export function sanitizeFechaInput(raw) {
+  const value = String(raw ?? '').trim();
+  if (!value) return '';
+  return /^\d{4}-\d{2}-\d{2}$/.test(value) && isValidISODate(value) ? value : '';
+}
+
+export function validateFecha(value) {
+  const sanitized = sanitizeFechaInput(value).trim();
+  if (!sanitized) return 'La fecha de consulta es obligatoria.';
+  if (!isValidISODate(sanitized)) return 'La fecha de consulta no es válida.';
+  return null;
+}
+
 /**
  * Sanitizes a telephone input.
  * - Keeps digits and a single leading +.
