@@ -1,5 +1,10 @@
 import { repairs, persist, setRepairs, uid, load } from '../state.js';
-import { FIELDS, toast, updateProvinceFilter, sanitizeNameInput, validateName } from '../utils.js';
+import {
+  FIELDS, toast, updateProvinceFilter,
+  sanitizeNameInput, validateName,
+  sanitizeCityInput, validateCity,
+  sanitizeProvinceInput, validateProvince,
+} from '../utils.js';
 import { showPage } from '../navigation.js';
 
 let editId = null;
@@ -28,34 +33,46 @@ export function initForm(id) {
     });
   }
 
-  // Live validation for nombre
-  const nombreEl = document.getElementById('f-nombre');
-  if (nombreEl) {
-    // Remove any previous listener by cloning the node
-    const fresh = nombreEl.cloneNode(true);
-    nombreEl.parentNode.replaceChild(fresh, nombreEl);
-    fresh.addEventListener('input', () => {
-      const sanitized = sanitizeNameInput(fresh.value);
-      // Silently apply sanitization while the user types
-      if (fresh.value !== sanitized) {
-        const pos = fresh.selectionStart;
-        fresh.value = sanitized;
-        fresh.setSelectionRange(pos, pos);
-      }
-      const error = validateName(sanitized);
-      setNameError(error);
-    });
-    fresh.addEventListener('blur', () => {
-      // On blur, always show the error if the field is invalid
-      const error = validateName(fresh.value);
-      setNameError(error);
-    });
-  }
+  // ── Live validation: nombre ──────────────────────────────────────────────
+  wireTextInput('f-nombre', sanitizeNameInput, validateName, setNameError);
+
+  // ── Live validation: ciudad ──────────────────────────────────────────────
+  wireTextInput('f-ciudad', sanitizeCityInput, validateCity, setCityError);
+
+  // ── Live validation: provincia ───────────────────────────────────────────
+  wireTextInput('f-provincia', sanitizeProvinceInput, validateProvince, setProvinceError);
 }
 
-function setNameError(msg) {
-  const errEl = document.getElementById('f-nombre-error');
-  const inputEl = document.getElementById('f-nombre');
+/**
+ * Attaches input + blur validation to a text field.
+ * Replaces the node to drop any previously-attached listeners.
+ */
+function wireTextInput(id, sanitize, validate, setError) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const fresh = el.cloneNode(true);
+  el.parentNode.replaceChild(fresh, el);
+
+  fresh.addEventListener('input', () => {
+    const sanitized = sanitize(fresh.value);
+    if (fresh.value !== sanitized) {
+      const pos = fresh.selectionStart;
+      fresh.value = sanitized;
+      fresh.setSelectionRange(pos, pos);
+    }
+    setError(validate(sanitized));
+  });
+
+  fresh.addEventListener('blur', () => {
+    setError(validate(fresh.value));
+  });
+}
+
+// ── Error display helpers ────────────────────────────────────────────────────
+
+function setFieldError(fieldId, msg) {
+  const errEl   = document.getElementById(fieldId + '-error');
+  const inputEl = document.getElementById(fieldId);
   if (!errEl || !inputEl) return;
   if (msg) {
     errEl.textContent = msg;
@@ -68,33 +85,73 @@ function setNameError(msg) {
   }
 }
 
+const setNameError     = msg => setFieldError('f-nombre',    msg);
+const setCityError     = msg => setFieldError('f-ciudad',    msg);
+const setProvinceError = msg => setFieldError('f-provincia', msg);
+
+// ── Field reader ─────────────────────────────────────────────────────────────
+
 export function getField(id) {
   return (document.getElementById('f-' + id)?.value || '').trim();
 }
 
+// ── Save ─────────────────────────────────────────────────────────────────────
+
 export function saveRepair() {
-  // Validate and sanitize nombre first
-  const rawNombre = document.getElementById('f-nombre')?.value ?? '';
+  let hasError = false;
+
+  // nombre
+  const rawNombre   = document.getElementById('f-nombre')?.value ?? '';
   const cleanNombre = sanitizeNameInput(rawNombre);
-  const nameError = validateName(cleanNombre);
+  const nameError   = validateName(cleanNombre);
+  setNameError(nameError);
   if (nameError) {
-    setNameError(nameError);
     document.getElementById('f-nombre')?.focus();
     toast(nameError);
-    return;
+    hasError = true;
+  } else {
+    const nombreEl = document.getElementById('f-nombre');
+    if (nombreEl) nombreEl.value = cleanNombre;
   }
-  setNameError(null);
-  // Write the sanitized value back so getField() picks it up
-  const nombreEl = document.getElementById('f-nombre');
-  if (nombreEl) nombreEl.value = cleanNombre;
 
-  if (!getField('ciudad') || !getField('provincia') || !getField('fecha') || !getField('marca')) {
+  // ciudad
+  const rawCiudad   = document.getElementById('f-ciudad')?.value ?? '';
+  const cleanCiudad = sanitizeCityInput(rawCiudad);
+  const cityError   = validateCity(cleanCiudad);
+  setCityError(cityError);
+  if (cityError && !hasError) {
+    document.getElementById('f-ciudad')?.focus();
+    toast(cityError);
+    hasError = true;
+  } else if (!cityError) {
+    const ciudadEl = document.getElementById('f-ciudad');
+    if (ciudadEl) ciudadEl.value = cleanCiudad;
+  }
+
+  // provincia
+  const rawProvincia   = document.getElementById('f-provincia')?.value ?? '';
+  const cleanProvincia = sanitizeProvinceInput(rawProvincia);
+  const provError      = validateProvince(cleanProvincia);
+  setProvinceError(provError);
+  if (provError && !hasError) {
+    document.getElementById('f-provincia')?.focus();
+    toast(provError);
+    hasError = true;
+  } else if (!provError) {
+    const provinciaEl = document.getElementById('f-provincia');
+    if (provinciaEl) provinciaEl.value = cleanProvincia;
+  }
+
+  if (hasError) return;
+
+  // remaining required fields (fecha, marca)
+  if (!getField('fecha') || !getField('marca')) {
     toast('Completá los campos obligatorios (*)');
     return;
   }
-  
+
   const r = {
-    id: editId || uid(),
+    id:        editId || uid(),
     nombre:    getField('nombre'),
     tel:       getField('tel'),
     ciudad:    getField('ciudad'),
@@ -110,7 +167,7 @@ export function saveRepair() {
     tareas:    getField('tareas'),
     cobrado:   parseFloat(getField('cobrado')) || 0,
     createdAt: editId ? (repairs.find(x => x.id === editId)?.createdAt || Date.now()) : Date.now(),
-    updatedAt: Date.now()
+    updatedAt: Date.now(),
   };
 
   if (editId) {
@@ -120,10 +177,12 @@ export function saveRepair() {
     setRepairs([r, ...repairs]);
     toast('Reparación guardada ✓');
   }
-  
+
   updateProvinceFilter(repairs);
   showPage('list');
 }
+
+// ── Delete ────────────────────────────────────────────────────────────────────
 
 export function deleteRepair() {
   if (!editId) return;
@@ -145,7 +204,7 @@ export function editRepair(id) {
   window.scrollTo(0, 0);
 }
 
-window.initForm = initForm;
-window.saveRepair = saveRepair;
+window.initForm    = initForm;
+window.saveRepair  = saveRepair;
 window.deleteRepair = deleteRepair;
-window.editRepair = editRepair;
+window.editRepair  = editRepair;

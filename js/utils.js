@@ -19,7 +19,6 @@ export function esc(s) {
 export function sanitizeSearchInput(raw) {
   const MAX_LEN = 100;
   return String(raw ?? '')
-    .trim()
     .replace(/[<>"'`\\\x00]/g, '')   // strip dangerous / encoding chars
     .replace(/\s+/g, ' ')             // collapse whitespace
     .slice(0, MAX_LEN);
@@ -27,7 +26,6 @@ export function sanitizeSearchInput(raw) {
 
 /**
  * Sanitizes a full-name input.
- * - Trims whitespace
  * - Strips characters that are not letters (including accented Spanish),
  *   spaces, hyphens, apostrophes, or dots (for abbreviations like "Jr.")
  * - Collapses runs of whitespace to a single space
@@ -36,7 +34,6 @@ export function sanitizeSearchInput(raw) {
 export function sanitizeNameInput(raw) {
   const MAX_LEN = 80;
   return String(raw ?? '')
-    .trim()
     .replace(/[^a-zA-ZáéíóúüñÁÉÍÓÚÜÑ\s\-'.]/g, '') // keep only valid name chars
     .replace(/\s+/g, ' ')                              // collapse whitespace
     .slice(0, MAX_LEN);
@@ -47,7 +44,7 @@ export function sanitizeNameInput(raw) {
  * Returns a string with the error message, or null if the value is valid.
  */
 export function validateName(value) {
-  const sanitized = sanitizeNameInput(value);
+  const sanitized = sanitizeNameInput(value).trim();
   if (!sanitized) {
     return 'El nombre es obligatorio.';
   }
@@ -62,6 +59,60 @@ export function validateName(value) {
   if (/^(.)\1+$/.test(sanitized.replace(/\s/g, ''))) {
     return 'Ingresá un nombre válido.';
   }
+  return null;
+}
+
+/**
+ * Sanitizes a city (ciudad) input.
+ * - Keeps letters (including accented Spanish), spaces, hyphens, dots,
+ *   and parentheses — enough for names like "Gral. Roca" or "San Martín (GBA)"
+ * - Collapses runs of whitespace to a single space
+ * - Enforces a maximum length
+ */
+export function sanitizeCityInput(raw) {
+  const MAX_LEN = 80;
+  return String(raw ?? '')
+    .replace(/[^a-zA-ZáéíóúüñÁÉÍÓÚÜÑ\s\-'.()]/g, '')
+    .replace(/\s+/g, ' ')
+    .slice(0, MAX_LEN);
+}
+
+/**
+ * Validates a sanitized city name.
+ * Returns an error string or null if valid.
+ */
+export function validateCity(value) {
+  const sanitized = sanitizeCityInput(value).trim();
+  if (!sanitized) return 'La ciudad es obligatoria.';
+  if (sanitized.length < 2) return 'La ciudad debe tener al menos 2 caracteres.';
+  if (!/[a-zA-ZáéíóúüñÁÉÍÓÚÜÑ]/.test(sanitized)) return 'La ciudad debe contener letras.';
+  return null;
+}
+
+/**
+ * Sanitizes a province (provincia) input.
+ * - Keeps letters (including accented Spanish), spaces, and hyphens
+ *   — sufficient for all 24 Argentine province names
+ * - Collapses runs of whitespace to a single space
+ * - Enforces a maximum length
+ */
+export function sanitizeProvinceInput(raw) {
+  const MAX_LEN = 60;
+  return String(raw ?? '')
+    .replace(/[^a-zA-ZáéíóúüñÁÉÍÓÚÜÑ\s\-]/g, '')
+    .replace(/\s+/g, ' ')
+    .slice(0, MAX_LEN);
+}
+
+/**
+ * Validates a sanitized province name.
+ * Returns an error string or null if valid.
+ */
+export function validateProvince(value) {
+  const sanitized = sanitizeProvinceInput(value).trim();
+  if (!sanitized) return 'La provincia es obligatoria.';
+  if (sanitized.length < 2) return 'La provincia debe tener al menos 2 caracteres.';
+  if (!/[a-zA-ZáéíóúüñÁÉÍÓÚÜÑ]/.test(sanitized)) return 'La provincia debe contener letras.';
   return null;
 }
 

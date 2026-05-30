@@ -3,7 +3,7 @@ import { esc, formatDate, updateTopbarCount, sanitizeSearchInput, sanitizeProvin
 import { showDetail } from './detail.js';
 
 export function renderList() {
-  const q = sanitizeSearchInput(document.getElementById('search-input')?.value).toLowerCase();
+  const q = sanitizeSearchInput(document.getElementById('search-input')?.value).trim().toLowerCase();
   const prov = sanitizeProvinceFilter(document.getElementById('filter-prov')?.value);
 
   const filtered = repairs.filter(r => {
