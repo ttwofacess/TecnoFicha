@@ -117,6 +117,34 @@ export function validateProvince(value) {
 }
 
 /**
+ * Sanitizes a telephone input.
+ * - Keeps digits and a single leading +.
+ * - Removes all other characters.
+ * - Enforces a maximum length.
+ */
+export function sanitizeTelInput(raw) {
+  const MAX_LEN = 20;
+  const value = String(raw ?? '');
+  const cleaned = value.replace(/[^\d+]/g, '');
+  const hasPlus = cleaned.startsWith('+');
+  const digitsOnly = cleaned.replace(/\+/g, '');
+  return (hasPlus ? '+' : '') + digitsOnly.slice(0, MAX_LEN - (hasPlus ? 1 : 0));
+}
+
+/**
+ * Validates a sanitized telephone number.
+ * Returns an error string or null if valid. The field is optional.
+ */
+export function validateTel(value) {
+  const sanitized = sanitizeTelInput(value).trim();
+  if (!sanitized) return null;
+  if (!/^\+?\d{8,15}$/.test(sanitized)) {
+    return 'Teléfono inválido. Debe contener entre 8 y 15 dígitos y puede iniciar con +.';
+  }
+  return null;
+}
+
+/**
  * Sanitizes the province filter value.
  * Accepts only values that consist of letters (including accented Spanish
  * letters), spaces, and hyphens — exactly what Argentine province names
