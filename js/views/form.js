@@ -4,6 +4,7 @@ import {
   sanitizeNameInput, validateName,
   sanitizeCityInput, validateCity,
   sanitizeProvinceInput, validateProvince,
+  sanitizeFechaInput, validateFecha,
   sanitizeTelInput, validateTel,
 } from '../utils.js';
 import { showPage } from '../navigation.js';
@@ -42,6 +43,14 @@ export function initForm(id) {
 
   // ── Live validation: provincia ───────────────────────────────────────────
   wireTextInput('f-provincia', sanitizeProvinceInput, validateProvince, setProvinceError);
+
+  // ── Live validation: fecha de consulta ────────────────────────────────────
+  const fechaInput = document.getElementById('f-fecha');
+  if (fechaInput) {
+    fechaInput.addEventListener('blur', () => {
+      setFechaError(validateFecha(fechaInput.value));
+    });
+  }
 
   // ── Live validation: teléfono ─────────────────────────────────────────────
   wireTextInput('f-tel', sanitizeTelInput, validateTel, setTelError);
@@ -92,6 +101,7 @@ function setFieldError(fieldId, msg) {
 const setNameError     = msg => setFieldError('f-nombre',    msg);
 const setCityError     = msg => setFieldError('f-ciudad',    msg);
 const setProvinceError = msg => setFieldError('f-provincia', msg);
+const setFechaError    = msg => setFieldError('f-fecha',     msg);
 const setTelError      = msg => setFieldError('f-tel',       msg);
 
 // ── Field reader ─────────────────────────────────────────────────────────────
@@ -147,6 +157,20 @@ export function saveRepair() {
     if (provinciaEl) provinciaEl.value = cleanProvincia;
   }
 
+  // fecha de consulta
+  const rawFecha   = document.getElementById('f-fecha')?.value ?? '';
+  const cleanFecha = sanitizeFechaInput(rawFecha);
+  const fechaError = validateFecha(cleanFecha);
+  setFechaError(fechaError);
+  if (fechaError && !hasError) {
+    document.getElementById('f-fecha')?.focus();
+    toast(fechaError);
+    hasError = true;
+  } else if (!fechaError) {
+    const fechaInput = document.getElementById('f-fecha');
+    if (fechaInput) fechaInput.value = cleanFecha;
+  }
+
   // teléfono (opcional)
   const rawTel   = document.getElementById('f-tel')?.value ?? '';
   const cleanTel = sanitizeTelInput(rawTel);
@@ -163,8 +187,8 @@ export function saveRepair() {
 
   if (hasError) return;
 
-  // remaining required fields (fecha, marca)
-  if (!getField('fecha') || !getField('marca')) {
+  // remaining required fields (marca)
+  if (!getField('marca')) {
     toast('Completá los campos obligatorios (*)');
     return;
   }
