@@ -18,7 +18,9 @@
   }
   #f-nombre[aria-invalid="true"],
   #f-ciudad[aria-invalid="true"],
-  #f-provincia[aria-invalid="true"] {
+  #f-provincia[aria-invalid="true"],
+  #f-marca[aria-invalid="true"],
+  #f-modelo[aria-invalid="true"] {
     border-color: #e03e3e;
     outline-color: #e03e3e;
     box-shadow: 0 0 0 2px rgba(224, 62, 62, 0.15);
@@ -103,11 +105,15 @@
           <div class="field row2">
             <div>
               <label>Marca <span class="req">*</span></label>
-              <input id="f-marca" placeholder="HP, Dell, Lenovo…" autocomplete="off">
+              <input id="f-marca" placeholder="HP, Dell, Lenovo…" autocomplete="off"
+                     maxlength="50" aria-describedby="f-marca-error">
+              <span id="f-marca-error" class="field-error" role="alert" style="display:none"></span>
             </div>
             <div>
               <label>Modelo</label>
-              <input id="f-modelo" placeholder="Pavilion 15" autocomplete="off">
+              <input id="f-modelo" placeholder="Pavilion 15" autocomplete="off"
+                     maxlength="80" aria-describedby="f-modelo-error">
+              <span id="f-modelo-error" class="field-error" role="alert" style="display:none"></span>
             </div>
           </div>
           <div class="field row2">

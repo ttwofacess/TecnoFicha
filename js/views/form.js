@@ -6,6 +6,8 @@ import {
   sanitizeProvinceInput, validateProvince,
   sanitizeFechaInput, validateFecha,
   sanitizeTelInput, validateTel,
+  sanitizeMarcaInput, validateMarca,
+  sanitizeModeloInput, validateModelo,
 } from '../utils.js';
 import { showPage } from '../navigation.js';
 
@@ -54,6 +56,12 @@ export function initForm(id) {
 
   // ── Live validation: teléfono ─────────────────────────────────────────────
   wireTextInput('f-tel', sanitizeTelInput, validateTel, setTelError);
+
+  // ── Live validation: marca ────────────────────────────────────────────────
+  wireTextInput('f-marca', sanitizeMarcaInput, validateMarca, setMarcaError);
+
+  // ── Live validation: modelo ───────────────────────────────────────────────
+  wireTextInput('f-modelo', sanitizeModeloInput, validateModelo, setModeloError);
 }
 
 /**
@@ -103,6 +111,8 @@ const setCityError     = msg => setFieldError('f-ciudad',    msg);
 const setProvinceError = msg => setFieldError('f-provincia', msg);
 const setFechaError    = msg => setFieldError('f-fecha',     msg);
 const setTelError      = msg => setFieldError('f-tel',       msg);
+const setMarcaError    = msg => setFieldError('f-marca',     msg);
+const setModeloError   = msg => setFieldError('f-modelo',    msg);
 
 // ── Field reader ─────────────────────────────────────────────────────────────
 
@@ -185,13 +195,35 @@ export function saveRepair() {
     if (telEl) telEl.value = cleanTel;
   }
 
-  if (hasError) return;
-
-  // remaining required fields (marca)
-  if (!getField('marca')) {
-    toast('Completá los campos obligatorios (*)');
-    return;
+  // marca
+  const rawMarca   = document.getElementById('f-marca')?.value ?? '';
+  const cleanMarca = sanitizeMarcaInput(rawMarca);
+  const marcaError = validateMarca(cleanMarca);
+  setMarcaError(marcaError);
+  if (marcaError && !hasError) {
+    document.getElementById('f-marca')?.focus();
+    toast(marcaError);
+    hasError = true;
+  } else if (!marcaError) {
+    const marcaEl = document.getElementById('f-marca');
+    if (marcaEl) marcaEl.value = cleanMarca;
   }
+
+  // modelo (opcional)
+  const rawModelo   = document.getElementById('f-modelo')?.value ?? '';
+  const cleanModelo = sanitizeModeloInput(rawModelo);
+  const modeloError = validateModelo(cleanModelo);
+  setModeloError(modeloError);
+  if (modeloError && !hasError) {
+    document.getElementById('f-modelo')?.focus();
+    toast(modeloError);
+    hasError = true;
+  } else if (!modeloError) {
+    const modeloEl = document.getElementById('f-modelo');
+    if (modeloEl) modeloEl.value = cleanModelo;
+  }
+
+  if (hasError) return;
 
   const r = {
     id:        editId || uid(),

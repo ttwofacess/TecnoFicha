@@ -116,6 +116,60 @@ export function validateProvince(value) {
   return null;
 }
 
+/**
+ * Sanitizes a device brand (marca) input.
+ * - Keeps letters, numbers, spaces, and common brand punctuation
+ * - Removes HTML/control characters
+ * - Collapses runs of whitespace to a single space
+ * - Enforces a maximum length
+ */
+export function sanitizeMarcaInput(raw) {
+  const MAX_LEN = 50;
+  return String(raw ?? '')
+    .replace(/[^\p{L}\p{N}\s&.+/#()\-]/gu, '')
+    .replace(/\s+/g, ' ')
+    .slice(0, MAX_LEN);
+}
+
+/**
+ * Validates a sanitized device brand.
+ * Returns an error string or null if valid.
+ */
+export function validateMarca(value) {
+  const sanitized = sanitizeMarcaInput(value).trim();
+  if (!sanitized) return 'La marca es obligatoria.';
+  if (sanitized.length < 2) return 'La marca debe tener al menos 2 caracteres.';
+  if (!/[\p{L}\p{N}]/u.test(sanitized)) return 'La marca debe contener letras o numeros.';
+  if (/^(.)\1+$/.test(sanitized.replace(/\s/g, ''))) return 'Ingresa una marca valida.';
+  return null;
+}
+
+/**
+ * Sanitizes a device model input.
+ * - Keeps letters, numbers, spaces, and common model punctuation
+ * - Removes HTML/control characters
+ * - Collapses runs of whitespace to a single space
+ * - Enforces a maximum length
+ */
+export function sanitizeModeloInput(raw) {
+  const MAX_LEN = 80;
+  return String(raw ?? '')
+    .replace(/[^\p{L}\p{N}\s&.+/#()_\-]/gu, '')
+    .replace(/\s+/g, ' ')
+    .slice(0, MAX_LEN);
+}
+
+/**
+ * Validates a sanitized device model.
+ * Returns an error string or null if valid. The field is optional.
+ */
+export function validateModelo(value) {
+  const sanitized = sanitizeModeloInput(value).trim();
+  if (!sanitized) return null;
+  if (!/[\p{L}\p{N}]/u.test(sanitized)) return 'El modelo debe contener letras o numeros.';
+  return null;
+}
+
 function isValidISODate(value) {
   const [year, month, day] = value.split('-').map(Number);
   if (!year || !month || !day) return false;
