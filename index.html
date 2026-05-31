@@ -20,7 +20,9 @@
   #f-ciudad[aria-invalid="true"],
   #f-provincia[aria-invalid="true"],
   #f-marca[aria-invalid="true"],
-  #f-modelo[aria-invalid="true"] {
+  #f-modelo[aria-invalid="true"],
+  #f-cpu[aria-invalid="true"],
+  #f-gpu[aria-invalid="true"] {
     border-color: #e03e3e;
     outline-color: #e03e3e;
     box-shadow: 0 0 0 2px rgba(224, 62, 62, 0.15);
@@ -119,11 +121,15 @@
           <div class="field row2">
             <div>
               <label>CPU</label>
-              <input id="f-cpu" placeholder="i5-1135G7" autocomplete="off">
+              <input id="f-cpu" placeholder="i5-1135G7" autocomplete="off"
+                     maxlength="80" aria-describedby="f-cpu-error">
+              <span id="f-cpu-error" class="field-error" role="alert" style="display:none"></span>
             </div>
             <div>
               <label>GPU</label>
-              <input id="f-gpu" placeholder="MX450 / Integrada" autocomplete="off">
+              <input id="f-gpu" placeholder="MX450 / Integrada" autocomplete="off"
+                     maxlength="80" aria-describedby="f-gpu-error">
+              <span id="f-gpu-error" class="field-error" role="alert" style="display:none"></span>
             </div>
           </div>
           <div class="field row2">
