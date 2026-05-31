@@ -170,6 +170,58 @@ export function validateModelo(value) {
   return null;
 }
 
+/**
+ * Sanitizes a CPU input.
+ * - Keeps letters, numbers, spaces, and common processor punctuation
+ * - Removes HTML/control characters
+ * - Collapses runs of whitespace to a single space
+ * - Enforces a maximum length
+ */
+export function sanitizeCpuInput(raw) {
+  const MAX_LEN = 80;
+  return String(raw ?? '')
+    .replace(/[^\p{L}\p{N}\s&.+/#()_\-]/gu, '')
+    .replace(/\s+/g, ' ')
+    .slice(0, MAX_LEN);
+}
+
+/**
+ * Validates a sanitized CPU value.
+ * Returns an error string or null if valid. The field is optional.
+ */
+export function validateCpu(value) {
+  const sanitized = sanitizeCpuInput(value).trim();
+  if (!sanitized) return null;
+  if (!/[\p{L}\p{N}]/u.test(sanitized)) return 'El CPU debe contener letras o numeros.';
+  return null;
+}
+
+/**
+ * Sanitizes a GPU input.
+ * - Keeps letters, numbers, spaces, and common graphics-card punctuation
+ * - Removes HTML/control characters
+ * - Collapses runs of whitespace to a single space
+ * - Enforces a maximum length
+ */
+export function sanitizeGpuInput(raw) {
+  const MAX_LEN = 80;
+  return String(raw ?? '')
+    .replace(/[^\p{L}\p{N}\s&.+/#()_\-]/gu, '')
+    .replace(/\s+/g, ' ')
+    .slice(0, MAX_LEN);
+}
+
+/**
+ * Validates a sanitized GPU value.
+ * Returns an error string or null if valid. The field is optional.
+ */
+export function validateGpu(value) {
+  const sanitized = sanitizeGpuInput(value).trim();
+  if (!sanitized) return null;
+  if (!/[\p{L}\p{N}]/u.test(sanitized)) return 'El GPU debe contener letras o numeros.';
+  return null;
+}
+
 function isValidISODate(value) {
   const [year, month, day] = value.split('-').map(Number);
   if (!year || !month || !day) return false;

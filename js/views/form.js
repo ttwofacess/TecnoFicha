@@ -8,6 +8,8 @@ import {
   sanitizeTelInput, validateTel,
   sanitizeMarcaInput, validateMarca,
   sanitizeModeloInput, validateModelo,
+  sanitizeCpuInput, validateCpu,
+  sanitizeGpuInput, validateGpu,
 } from '../utils.js';
 import { showPage } from '../navigation.js';
 
@@ -62,6 +64,8 @@ export function initForm(id) {
 
   // ── Live validation: modelo ───────────────────────────────────────────────
   wireTextInput('f-modelo', sanitizeModeloInput, validateModelo, setModeloError);
+  wireTextInput('f-cpu', sanitizeCpuInput, validateCpu, setCpuError);
+  wireTextInput('f-gpu', sanitizeGpuInput, validateGpu, setGpuError);
 }
 
 /**
@@ -113,6 +117,8 @@ const setFechaError    = msg => setFieldError('f-fecha',     msg);
 const setTelError      = msg => setFieldError('f-tel',       msg);
 const setMarcaError    = msg => setFieldError('f-marca',     msg);
 const setModeloError   = msg => setFieldError('f-modelo',    msg);
+const setCpuError      = msg => setFieldError('f-cpu',       msg);
+const setGpuError      = msg => setFieldError('f-gpu',       msg);
 
 // ── Field reader ─────────────────────────────────────────────────────────────
 
@@ -221,6 +227,34 @@ export function saveRepair() {
   } else if (!modeloError) {
     const modeloEl = document.getElementById('f-modelo');
     if (modeloEl) modeloEl.value = cleanModelo;
+  }
+
+  // CPU (opcional)
+  const rawCpu   = document.getElementById('f-cpu')?.value ?? '';
+  const cleanCpu = sanitizeCpuInput(rawCpu);
+  const cpuError = validateCpu(cleanCpu);
+  setCpuError(cpuError);
+  if (cpuError && !hasError) {
+    document.getElementById('f-cpu')?.focus();
+    toast(cpuError);
+    hasError = true;
+  } else if (!cpuError) {
+    const cpuEl = document.getElementById('f-cpu');
+    if (cpuEl) cpuEl.value = cleanCpu;
+  }
+
+  // GPU (opcional)
+  const rawGpu   = document.getElementById('f-gpu')?.value ?? '';
+  const cleanGpu = sanitizeGpuInput(rawGpu);
+  const gpuError = validateGpu(cleanGpu);
+  setGpuError(gpuError);
+  if (gpuError && !hasError) {
+    document.getElementById('f-gpu')?.focus();
+    toast(gpuError);
+    hasError = true;
+  } else if (!gpuError) {
+    const gpuEl = document.getElementById('f-gpu');
+    if (gpuEl) gpuEl.value = cleanGpu;
   }
 
   if (hasError) return;
