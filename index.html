@@ -22,7 +22,9 @@
   #f-marca[aria-invalid="true"],
   #f-modelo[aria-invalid="true"],
   #f-cpu[aria-invalid="true"],
-  #f-gpu[aria-invalid="true"] {
+  #f-gpu[aria-invalid="true"],
+  #f-ram[aria-invalid="true"],
+  #f-discos[aria-invalid="true"] {
     border-color: #e03e3e;
     outline-color: #e03e3e;
     box-shadow: 0 0 0 2px rgba(224, 62, 62, 0.15);
@@ -135,11 +137,13 @@
           <div class="field row2">
             <div>
               <label>RAM (GB)</label>
-              <input id="f-ram" type="number" placeholder="8" min="0" autocomplete="off">
+              <input id="f-ram" type="number" placeholder="8" min="0" autocomplete="off" aria-describedby="f-ram-error">
+              <span id="f-ram-error" class="field-error" role="alert" style="display:none"></span>
             </div>
             <div>
               <label>Almacenamiento</label>
-              <input id="f-discos" placeholder="256GB SSD + 1TB" autocomplete="off">
+              <input id="f-discos" placeholder="256GB SSD + 1TB" autocomplete="off" aria-describedby="f-discos-error" maxlength="100">
+              <span id="f-discos-error" class="field-error" role="alert" style="display:none"></span>
             </div>
           </div>
         </div>
