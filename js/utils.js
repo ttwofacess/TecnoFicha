@@ -222,6 +222,63 @@ export function validateGpu(value) {
   return null;
 }
 
+/**
+ * Sanitizes a RAM input (GB).
+ * - Casts to string.
+ * - Keeps only digits.
+ * - Limits to 5 characters.
+ */
+export function sanitizeRamInput(raw) {
+  const MAX_LEN = 5;
+  return String(raw ?? '')
+    .replace(/\D/g, '')
+    .slice(0, MAX_LEN);
+}
+
+/**
+ * Validates a sanitized RAM value.
+ * Returns an error string or null if valid. The field is optional.
+ */
+export function validateRam(value) {
+  const sanitized = sanitizeRamInput(value);
+  if (!sanitized) return null;
+  const n = Number(sanitized);
+  if (!Number.isInteger(n) || n < 0) {
+    return 'La RAM debe ser un número entero positivo.';
+  }
+  if (n > 99999) {
+    return 'El valor de RAM no parece válido.';
+  }
+  return null;
+}
+
+/**
+ * Sanitizes a storage (discos) input.
+ * - Keeps letters, digits, spaces, and common punctuation: . + / ( ) _ -
+ * - Collapses runs of whitespace to a single space.
+ * - Enforces a maximum length.
+ */
+export function sanitizeDiscosInput(raw) {
+  const MAX_LEN = 100;
+  return String(raw ?? '')
+    .replace(/[^\p{L}\p{N}\s.+/()_\-]/gu, '')
+    .replace(/\s+/g, ' ')
+    .slice(0, MAX_LEN);
+}
+
+/**
+ * Validates a sanitized storage description.
+ * Returns an error string or null if valid. The field is optional.
+ */
+export function validateDiscos(value) {
+  const sanitized = sanitizeDiscosInput(value).trim();
+  if (!sanitized) return null;
+  if (!/[\p{L}\p{N}]/u.test(sanitized)) {
+    return 'El almacenamiento debe contener letras o números.';
+  }
+  return null;
+}
+
 function isValidISODate(value) {
   const [year, month, day] = value.split('-').map(Number);
   if (!year || !month || !day) return false;

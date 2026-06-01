@@ -10,6 +10,8 @@ import {
   sanitizeModeloInput, validateModelo,
   sanitizeCpuInput, validateCpu,
   sanitizeGpuInput, validateGpu,
+  sanitizeRamInput, validateRam,
+  sanitizeDiscosInput, validateDiscos,
 } from '../utils.js';
 import { showPage } from '../navigation.js';
 
@@ -66,6 +68,12 @@ export function initForm(id) {
   wireTextInput('f-modelo', sanitizeModeloInput, validateModelo, setModeloError);
   wireTextInput('f-cpu', sanitizeCpuInput, validateCpu, setCpuError);
   wireTextInput('f-gpu', sanitizeGpuInput, validateGpu, setGpuError);
+
+  // Live validation: RAM
+  wireRamInput();
+
+  // Live validation: discos
+  wireTextInput('f-discos', sanitizeDiscosInput, validateDiscos, setDiscosError);
 }
 
 /**
@@ -90,6 +98,28 @@ function wireTextInput(id, sanitize, validate, setError) {
 
   fresh.addEventListener('blur', () => {
     setError(validate(fresh.value));
+  });
+}
+
+/**
+ * Attaches input + blur validation to the RAM (number) field.
+ */
+function wireRamInput() {
+  const el = document.getElementById('f-ram');
+  if (!el) return;
+  const fresh = el.cloneNode(true);
+  el.parentNode.replaceChild(fresh, el);
+
+  fresh.addEventListener('input', () => {
+    const sanitized = sanitizeRamInput(fresh.value);
+    if (fresh.value !== sanitized) {
+      fresh.value = sanitized;
+    }
+    setRamError(validateRam(sanitized));
+  });
+
+  fresh.addEventListener('blur', () => {
+    setRamError(validateRam(fresh.value));
   });
 }
 
@@ -119,6 +149,8 @@ const setMarcaError    = msg => setFieldError('f-marca',     msg);
 const setModeloError   = msg => setFieldError('f-modelo',    msg);
 const setCpuError      = msg => setFieldError('f-cpu',       msg);
 const setGpuError      = msg => setFieldError('f-gpu',       msg);
+const setRamError      = msg => setFieldError('f-ram',       msg);
+const setDiscosError   = msg => setFieldError('f-discos',    msg);
 
 // ── Field reader ─────────────────────────────────────────────────────────────
 
@@ -255,6 +287,34 @@ export function saveRepair() {
   } else if (!gpuError) {
     const gpuEl = document.getElementById('f-gpu');
     if (gpuEl) gpuEl.value = cleanGpu;
+  }
+
+  // RAM (opcional)
+  const rawRam   = document.getElementById('f-ram')?.value ?? '';
+  const cleanRam = sanitizeRamInput(rawRam);
+  const ramError = validateRam(cleanRam);
+  setRamError(ramError);
+  if (ramError && !hasError) {
+    document.getElementById('f-ram')?.focus();
+    toast(ramError);
+    hasError = true;
+  } else if (!ramError) {
+    const ramEl = document.getElementById('f-ram');
+    if (ramEl) ramEl.value = cleanRam;
+  }
+
+  // Discos (opcional)
+  const rawDiscos   = document.getElementById('f-discos')?.value ?? '';
+  const cleanDiscos = sanitizeDiscosInput(rawDiscos);
+  const discosError = validateDiscos(cleanDiscos);
+  setDiscosError(discosError);
+  if (discosError && !hasError) {
+    document.getElementById('f-discos')?.focus();
+    toast(discosError);
+    hasError = true;
+  } else if (!discosError) {
+    const discosEl = document.getElementById('f-discos');
+    if (discosEl) discosEl.value = cleanDiscos;
   }
 
   if (hasError) return;
