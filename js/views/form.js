@@ -12,6 +12,9 @@ import {
   sanitizeGpuInput, validateGpu,
   sanitizeRamInput, validateRam,
   sanitizeDiscosInput, validateDiscos,
+  sanitizeProblemaInput, validateProblema,
+  sanitizeTareasInput,   validateTareas,
+  sanitizeCobradoInput,  validateCobrado,
 } from '../utils.js';
 import { showPage } from '../navigation.js';
 
@@ -74,6 +77,15 @@ export function initForm(id) {
 
   // Live validation: discos
   wireTextInput('f-discos', sanitizeDiscosInput, validateDiscos, setDiscosError);
+
+  // Live validation: problema (textarea)
+  wireTextareaInput('f-problema', sanitizeProblemaInput, validateProblema, setProblemaError);
+
+  // Live validation: tareas (textarea)
+  wireTextareaInput('f-tareas', sanitizeTareasInput, validateTareas, setTareasError);
+
+  // Live validation: cobrado
+  wireCobradoInput();
 }
 
 /**
@@ -98,6 +110,40 @@ function wireTextInput(id, sanitize, validate, setError) {
 
   fresh.addEventListener('blur', () => {
     setError(validate(fresh.value));
+  });
+}
+
+function wireTextareaInput(id, sanitize, validate, setError) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const fresh = el.cloneNode(true);
+  el.parentNode.replaceChild(fresh, el);
+
+  fresh.addEventListener('input', () => {
+    setError(validate(fresh.value));
+  });
+
+  fresh.addEventListener('blur', () => {
+    const sanitized = sanitize(fresh.value);
+    if (fresh.value !== sanitized) fresh.value = sanitized;
+    setError(validate(fresh.value));
+  });
+}
+
+function wireCobradoInput() {
+  const el = document.getElementById('f-cobrado');
+  if (!el) return;
+  const fresh = el.cloneNode(true);
+  el.parentNode.replaceChild(fresh, el);
+
+  fresh.addEventListener('input', () => {
+    setCobradoError(validateCobrado(fresh.value));
+  });
+
+  fresh.addEventListener('blur', () => {
+    const sanitized = sanitizeCobradoInput(fresh.value);
+    if (fresh.value !== sanitized) fresh.value = sanitized;
+    setCobradoError(validateCobrado(fresh.value));
   });
 }
 
@@ -151,6 +197,9 @@ const setCpuError      = msg => setFieldError('f-cpu',       msg);
 const setGpuError      = msg => setFieldError('f-gpu',       msg);
 const setRamError      = msg => setFieldError('f-ram',       msg);
 const setDiscosError   = msg => setFieldError('f-discos',    msg);
+const setProblemaError = msg => setFieldError('f-problema',  msg);
+const setTareasError   = msg => setFieldError('f-tareas',    msg);
+const setCobradoError  = msg => setFieldError('f-cobrado',   msg);
 
 // ── Field reader ─────────────────────────────────────────────────────────────
 
@@ -317,6 +366,48 @@ export function saveRepair() {
     if (discosEl) discosEl.value = cleanDiscos;
   }
 
+  // problema (required)
+  const rawProblema   = document.getElementById('f-problema')?.value ?? '';
+  const cleanProblema = sanitizeProblemaInput(rawProblema);
+  const problemaError = validateProblema(cleanProblema);
+  setProblemaError(problemaError);
+  if (problemaError && !hasError) {
+    document.getElementById('f-problema')?.focus();
+    toast(problemaError);
+    hasError = true;
+  } else if (!problemaError) {
+    const problemaEl = document.getElementById('f-problema');
+    if (problemaEl) problemaEl.value = cleanProblema;
+  }
+
+  // tareas (optional)
+  const rawTareas   = document.getElementById('f-tareas')?.value ?? '';
+  const cleanTareas = sanitizeTareasInput(rawTareas);
+  const tareasError = validateTareas(cleanTareas);
+  setTareasError(tareasError);
+  if (tareasError && !hasError) {
+    document.getElementById('f-tareas')?.focus();
+    toast(tareasError);
+    hasError = true;
+  } else if (!tareasError) {
+    const tareasEl = document.getElementById('f-tareas');
+    if (tareasEl) tareasEl.value = cleanTareas;
+  }
+
+  // cobrado (optional)
+  const rawCobrado   = document.getElementById('f-cobrado')?.value ?? '';
+  const cleanCobrado = sanitizeCobradoInput(rawCobrado);
+  const cobradoError = validateCobrado(cleanCobrado);
+  setCobradoError(cobradoError);
+  if (cobradoError && !hasError) {
+    document.getElementById('f-cobrado')?.focus();
+    toast(cobradoError);
+    hasError = true;
+  } else if (!cobradoError) {
+    const cobradoEl = document.getElementById('f-cobrado');
+    if (cobradoEl) cobradoEl.value = cleanCobrado;
+  }
+
   if (hasError) return;
 
   const r = {
@@ -334,7 +425,7 @@ export function saveRepair() {
     discos:    getField('discos'),
     problema:  getField('problema'),
     tareas:    getField('tareas'),
-    cobrado:   parseFloat(getField('cobrado')) || 0,
+    cobrado:   parseFloat(sanitizeCobradoInput(getField('cobrado'))) || 0,
     createdAt: editId ? (repairs.find(x => x.id === editId)?.createdAt || Date.now()) : Date.now(),
     updatedAt: Date.now(),
   };

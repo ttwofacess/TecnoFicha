@@ -24,7 +24,10 @@
   #f-cpu[aria-invalid="true"],
   #f-gpu[aria-invalid="true"],
   #f-ram[aria-invalid="true"],
-  #f-discos[aria-invalid="true"] {
+  #f-discos[aria-invalid="true"],
+  #f-problema[aria-invalid="true"],
+  #f-tareas[aria-invalid="true"],
+  #f-cobrado[aria-invalid="true"] {
     border-color: #e03e3e;
     outline-color: #e03e3e;
     box-shadow: 0 0 0 2px rgba(224, 62, 62, 0.15);
@@ -152,15 +155,23 @@
           <div class="form-section-title">🛠️ Diagnóstico</div>
           <div class="field">
             <label>Problema con el que ingresa <span class="req">*</span></label>
-            <textarea id="f-problema" placeholder="Describí el problema reportado por el cliente…"></textarea>
+            <textarea id="f-problema" maxlength="1000"
+                      aria-describedby="f-problema-error"
+                      placeholder="Describí el problema reportado por el cliente…"></textarea>
+            <span id="f-problema-error" class="field-error" role="alert" style="display:none"></span>
           </div>
           <div class="field">
             <label>Tareas realizadas</label>
-            <textarea id="f-tareas" placeholder="Describí los trabajos realizados…"></textarea>
+            <textarea id="f-tareas" maxlength="1000"
+                      aria-describedby="f-tareas-error"
+                      placeholder="Describí los trabajos realizados…"></textarea>
+            <span id="f-tareas-error" class="field-error" role="alert" style="display:none"></span>
           </div>
           <div class="field">
             <label>Cobrado (ARS)</label>
-            <input id="f-cobrado" type="number" placeholder="0" min="0" autocomplete="off">
+            <input id="f-cobrado" type="number" placeholder="0" min="0" step="0.01"
+                   autocomplete="off" aria-describedby="f-cobrado-error">
+            <span id="f-cobrado-error" class="field-error" role="alert" style="display:none"></span>
           </div>
         </div>
 

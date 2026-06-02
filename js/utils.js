@@ -331,6 +331,82 @@ export function validateTel(value) {
 }
 
 /**
+ * Sanitizes the "problema" textarea input.
+ * Strips null bytes and HTML-breaking characters; collapses excessive whitespace.
+ */
+export function sanitizeProblemaInput(raw) {
+  const MAX_LEN = 1000;
+  return String(raw ?? '')
+    .replace(/[<>"'`\\\x00]/g, '')
+    .replace(/\s+/g, ' ')
+    .slice(0, MAX_LEN);
+}
+
+/**
+ * Validates the sanitized "problema" value.
+ * Required field — must contain at least one word.
+ */
+export function validateProblema(value) {
+  const sanitized = sanitizeProblemaInput(value).trim();
+  if (!sanitized) return 'El problema es obligatorio.';
+  if (sanitized.length < 5) return 'Describí el problema con al menos 5 caracteres.';
+  return null;
+}
+
+/**
+ * Sanitizes the "tareas" textarea input.
+ * Same rules as problema; field is optional.
+ */
+export function sanitizeTareasInput(raw) {
+  const MAX_LEN = 1000;
+  return String(raw ?? '')
+    .replace(/[<>"'`\\\x00]/g, '')
+    .replace(/\s+/g, ' ')
+    .slice(0, MAX_LEN);
+}
+
+/**
+ * Validates the sanitized "tareas" value.
+ * Optional — returns null when empty.
+ */
+export function validateTareas(value) {
+  const sanitized = sanitizeTareasInput(value).trim();
+  if (!sanitized) return null;
+  if (sanitized.length < 3) return 'Describí las tareas con al menos 3 caracteres.';
+  return null;
+}
+
+/**
+ * Sanitizes the "cobrado" input.
+ * Keeps only digits and a single decimal separator (dot).
+ * Rejects negative signs.
+ */
+export function sanitizeCobradoInput(raw) {
+  const MAX_LEN = 12;
+  const value = String(raw ?? '').replace(/[^\d.]/g, '');
+  // Keep only the first dot
+  const parts = value.split('.');
+  const result = parts.length > 1
+    ? parts[0] + '.' + parts.slice(1).join('')
+    : parts[0];
+  return result.slice(0, MAX_LEN);
+}
+
+/**
+ * Validates the sanitized "cobrado" value.
+ * Optional — must be a non-negative finite number when present.
+ */
+export function validateCobrado(value) {
+  const sanitized = sanitizeCobradoInput(value).trim();
+  if (!sanitized) return null;
+  const n = parseFloat(sanitized);
+  if (Number.isNaN(n) || !Number.isFinite(n)) return 'El monto cobrado no es válido.';
+  if (n < 0) return 'El monto cobrado no puede ser negativo.';
+  if (n > 999_999_999) return 'El monto cobrado parece demasiado alto.';
+  return null;
+}
+
+/**
  * Sanitizes the province filter value.
  * Accepts only values that consist of letters (including accented Spanish
  * letters), spaces, and hyphens — exactly what Argentine province names
