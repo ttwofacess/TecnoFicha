@@ -1,0 +1,10 @@
+{
+  "name": "TecnoFicha",
+  "short_name": "TecnoFicha",
+  "icons": [
+    { "src": "favicon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ],
+  "theme_color": "#1a1a2e",
+  "background_color": "#ffffff",
+  "display": "standalone"
+}
