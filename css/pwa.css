@@ -36,35 +36,3 @@
 .pwa-dialog::backdrop { background: rgba(0, 0, 0, 0.6); }
 .pwa-dialog h2 { font-size: 17px; margin-bottom: 12px; }
 .pwa-dialog ol { margin: 0 0 18px 18px; line-height: 1.7; color: var(--text2); font-size: 14px; }
-
-/* Banner de actualización (sobre la barra inferior) */
-.update-banner {
-  position: fixed;
-  left: 50%;
-  bottom: calc(76px + env(safe-area-inset-bottom));
-  transform: translateX(-50%);
-  width: calc(100% - 32px);
-  max-width: 448px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 10px 14px;
-  background: var(--bg3);
-  border: 1px solid var(--accent-border);
-  border-radius: var(--radius);
-  font-size: 13px;
-  z-index: 998;
-}
-.update-banner[hidden] { display: none; }
-.update-banner button {
-  font-family: var(--font);
-  font-weight: 600;
-  font-size: 13px;
-  color: #fff;
-  background: var(--accent);
-  border: 0;
-  border-radius: 8px;
-  padding: 6px 12px;
-  cursor: pointer;
-}

@@ -91,12 +91,14 @@ function registerServiceWorker() {
 }
 
 function showUpdate(worker) {
-  const banner = $('update-banner');
-  const btn = $('update-btn');
-  if (!banner || !btn) return;
-  banner.hidden = false;
-  btn.onclick = () => {
-    btn.disabled = true;
-    worker.postMessage({ type: 'SKIP_WAITING' });
-  };
+  toast('Nueva versión disponible', {
+    persistent: true,
+    actionText: 'Actualizar',
+    onAction: () => {
+      // Notificar al Service Worker que salte la espera y active la nueva versión.
+      // La recarga la dispara el listener de 'controllerchange'.
+      worker.postMessage({ type: 'SKIP_WAITING' });
+      toast('Actualizando…', { duration: 2000 });
+    },
+  });
 }

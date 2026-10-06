@@ -229,13 +229,11 @@
   <button type="button" class="btn btn-primary" id="ios-install-close">Entendido</button>
 </dialog>
 
-<!-- Aviso de nueva versión -->
-<div id="update-banner" class="update-banner" role="status" hidden>
-  <span>Hay una nueva versión disponible.</span>
-  <button type="button" id="update-btn">Actualizar</button>
+<!-- Avisos flotantes (toast): mensajes temporales y aviso de nueva versión -->
+<div id="toast" role="status" aria-live="polite" aria-atomic="true">
+  <span id="toast-message"></span>
+  <button type="button" id="toast-action-btn" hidden>Actualizar</button>
 </div>
-
-<div id="toast"></div>
 
 <script type="module" src="script.js"></script>
 </body>

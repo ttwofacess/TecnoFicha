@@ -1,8 +1,13 @@
 #toast {
   position: fixed;
-  bottom: 96px;
+  bottom: calc(76px + env(safe-area-inset-bottom));
   left: 50%;
   transform: translateX(-50%) translateY(10px);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: fit-content;
+  max-width: calc(100% - 32px);
   background: var(--text);
   color: var(--bg);
   padding: 10px 20px;
@@ -11,14 +16,49 @@
   font-weight: 500;
   opacity: 0;
   transition: opacity .25s, transform .25s;
-  pointer-events: none;
+  pointer-events: auto;
   z-index: 999;
-  white-space: nowrap;
-  max-width: 90vw;
   text-align: center;
 }
 
 #toast.show {
   opacity: 1;
   transform: translateX(-50%) translateY(0);
+}
+
+#toast-message {
+  flex: 1 1 auto;
+  min-width: 0;
+  line-height: 1.4;
+}
+
+#toast-action-btn {
+  flex: 0 0 auto;
+  font-family: var(--font);
+  font-weight: 600;
+  font-size: 13px;
+  color: #fff;
+  background: var(--accent);
+  border: 0;
+  border-radius: 20px;
+  padding: 6px 14px;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background .2s, opacity .2s;
+}
+#toast-action-btn:hover:not(:disabled) { background: var(--accent2); }
+#toast-action-btn:disabled { opacity: .6; cursor: default; }
+#toast-action-btn[hidden] { display: none; }
+
+/* Modo persistente (aviso de nueva versión): no se oculta solo */
+#toast.persistent {
+  width: calc(100% - 32px);
+  max-width: 448px;
+  background: var(--bg3);
+  color: var(--text);
+  border: 1px solid var(--accent-border);
+  border-radius: var(--radius);
+  padding: 12px 12px 12px 16px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  text-align: left;
 }
