@@ -424,14 +424,89 @@ export function formatDate(d) {
   return `${day}/${m}/${y}`;
 }
 
-let toastTimer;
-export function toast(msg) {
-  const el = document.getElementById('toast');
-  if (!el) return;
-  el.textContent = msg;
-  el.classList.add('show');
+/* ---------- Toast ---------- */
+let toastTimer = null;
+let toastState = null;   // configuración del toast visible
+let shadowToast = null;  // aviso persistente interrumpido por uno temporal
+
+/**
+ * Muestra un aviso flotante.
+ * @param {string} msg  texto del aviso
+ * @param {object} [options]
+ * @param {number} [options.duration=2400]  ms hasta ocultarse (ignorado si es persistente)
+ * @param {boolean} [options.persistent=false]  no se oculta solo y espera una acción
+ * @param {string} [options.actionText]  etiqueta del botón de acción
+ * @param {Function} [options.onAction]  callback al pulsar el botón de acción
+ */
+export function toast(msg, options = {}) {
+  const opts = {
+    duration: 2400,
+    persistent: false,
+    actionText: '',
+    onAction: null,
+    ...options,
+  };
+
+  // Un aviso temporal puede pisar al persistente (ej. "Registro eliminado"),
+  // pero lo guardamos para restaurarlo apenas el temporal se vaya.
+  shadowToast = toastState?.persistent ? toastState : null;
+
+  renderToast(msg, opts);
+
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => el.classList.remove('show'), 2400);
+  if (!opts.persistent) toastTimer = setTimeout(hideToast, opts.duration);
+}
+
+function renderToast(msg, opts) {
+  const el = document.getElementById('toast');
+  const msgEl = document.getElementById('toast-message');
+  const btn = document.getElementById('toast-action-btn');
+  if (!el || !msgEl) return;
+
+  toastState = { msg, ...opts };
+  msgEl.textContent = msg;
+
+  if (btn) {
+    bindToastAction(btn);
+    btn.hidden = !opts.actionText;
+    btn.disabled = false;
+    btn.textContent = opts.actionText || btn.textContent;
+  }
+
+  el.classList.add('show');
+  el.classList.toggle('persistent', opts.persistent);
+}
+
+// Un único listener para siempre: evita duplicados y nodos huérfanos.
+function bindToastAction(btn) {
+  if (btn.dataset.bound) return;
+  btn.dataset.bound = '1';
+  btn.addEventListener('click', () => {
+    const onAction = toastState?.onAction;
+    clearToast(); // el aviso se va aunque la acción no reemplace el contenido
+    if (onAction) onAction();
+  });
+}
+
+function clearToast() {
+  clearTimeout(toastTimer);
+  const el = document.getElementById('toast');
+  if (el) el.classList.remove('show', 'persistent');
+  const btn = document.getElementById('toast-action-btn');
+  if (btn) {
+    btn.hidden = true;
+    btn.disabled = false;
+  }
+  toastState = null;
+}
+
+function hideToast() {
+  clearToast();
+  if (shadowToast) {
+    const pending = shadowToast;
+    shadowToast = null;
+    renderToast(pending.msg, pending);
+  }
 }
 
 export function updateTopbarCount(count) {
