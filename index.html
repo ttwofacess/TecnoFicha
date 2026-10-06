@@ -2,16 +2,24 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<!-- Favicon -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<!-- Favicon e íconos -->
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<!-- PWA -->
 <link rel="manifest" href="site.webmanifest">
-<meta name="theme-color" content="#1a1a2e">
+<meta name="theme-color" content="#0f0f11">
+<!-- iOS -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="TecnoFicha">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>TecnoFicha — Historial de Reparaciones</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/main.css">
+<link rel="stylesheet" href="css/pwa.css">
 <style>
   .field-error {
     display: block;
@@ -44,7 +52,10 @@
     <div class="topbar-logo">
       <span>🔧</span> TecnoFicha
     </div>
-    <div class="topbar-count" id="topbar-count"></div>
+    <div class="topbar-actions">
+      <button type="button" id="install-btn" class="install-btn" hidden>⬇ Instalar</button>
+      <div class="topbar-count" id="topbar-count"></div>
+    </div>
   </div>
 
   <div class="content">
@@ -208,6 +219,23 @@
       <span class="nav-icon">📊</span>Resumen
     </button>
   </nav>
+</div>
+
+<!-- Instrucciones de instalación para iOS/Safari -->
+<dialog id="ios-install-dialog" class="pwa-dialog">
+  <h2>Instalar TecnoFicha</h2>
+  <ol>
+    <li>Tocá el botón <strong>Compartir</strong> <span aria-hidden="true">⬆️</span> de Safari.</li>
+    <li>Elegí <strong>Agregar a pantalla de inicio</strong>.</li>
+    <li>Confirmá con <strong>Agregar</strong>.</li>
+  </ol>
+  <button type="button" class="btn btn-primary" id="ios-install-close">Entendido</button>
+</dialog>
+
+<!-- Aviso de nueva versión -->
+<div id="update-banner" class="update-banner" role="status" hidden>
+  <span>Hay una nueva versión disponible.</span>
+  <button type="button" id="update-btn">Actualizar</button>
 </div>
 
 <div id="toast"></div>
