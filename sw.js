@@ -1,7 +1,5 @@
 const VERSION = '1.0.0'; // ⚠️ subir en cada release que cambie archivos
 const SHELL_CACHE = `tecnoficha-shell-${VERSION}`;
-const FONT_CACHE = 'tecnoficha-fonts-v1';
-const FONT_HOSTS = ['fonts.googleapis.com', 'fonts.gstatic.com'];
 
 const PRECACHE = [
   './',
@@ -16,10 +14,18 @@ const PRECACHE = [
   './icons/icon-512.png',
   './icons/apple-touch-icon.png',
 
+  // Fuentes
+  './fonts/dm-sans-latin-400-normal.woff2',
+  './fonts/dm-sans-latin-500-normal.woff2',
+  './fonts/dm-sans-latin-600-normal.woff2',
+  './fonts/dm-mono-latin-400-normal.woff2',
+  './fonts/dm-mono-latin-500-normal.woff2',
+
   // CSS
   './css/main.css',
   './css/pwa.css',
   './css/base/tokens.css',
+  './css/base/fonts.css',
   './css/base/reset.css',
   './css/base/layout.css',
   './css/components/topbar.css',
@@ -87,8 +93,6 @@ self.addEventListener('fetch', (event) => {
 
   if (url.origin === self.location.origin) {
     event.respondWith(cacheFirst(request));
-  } else if (FONT_HOSTS.includes(url.hostname)) {
-    event.respondWith(staleWhileRevalidate(request));
   }
 });
 
@@ -109,17 +113,4 @@ async function cacheFirst(request) {
     }
     throw err;
   }
-}
-
-async function staleWhileRevalidate(request) {
-  const cache = await caches.open(FONT_CACHE);
-  const cached = await cache.match(request);
-  const network = fetch(request)
-    .then((response) => {
-      // Las respuestas cross-origin sin CORS son "opaque" (status 0): también se pueden cachear
-      if (response.ok || response.type === 'opaque') cache.put(request, response.clone());
-      return response;
-    })
-    .catch(() => cached);
-  return cached || network;
 }
