@@ -58,7 +58,7 @@ function registerServiceWorker() {
 
   window.addEventListener('load', async () => {
     try {
-      const reg = await navigator.serviceWorker.register('./sw.js');
+      const reg = await navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' });
 
       // Ya había una versión nueva esperando
       if (reg.waiting && navigator.serviceWorker.controller) showUpdate(reg.waiting);
