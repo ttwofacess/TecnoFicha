@@ -53,12 +53,15 @@ function setupInstall() {
 }
 
 /* ---------- Service worker + actualizaciones ---------- */
+let registration = null; // lo consultamos al confirmar, por si el worker quedó viejo
+
 function registerServiceWorker() {
   if (!('serviceWorker' in navigator)) return;
 
   window.addEventListener('load', async () => {
     try {
       const reg = await navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' });
+      registration = reg;
 
       // Ya había una versión nueva esperando
       if (reg.waiting && navigator.serviceWorker.controller) showUpdate(reg.waiting);
@@ -95,9 +98,16 @@ function showUpdate(worker) {
     persistent: true,
     actionText: 'Actualizar',
     onAction: () => {
+      // Si llegó otra versión mientras el usuario decidía, el worker que tenemos
+      // quedó redundante y su SKIP_WAITING no haría nada: activamos el que esté esperando.
+      const target = worker.state === 'redundant' ? registration?.waiting : worker;
+      if (!target) {
+        toast('No se pudo actualizar. Recargá la app.', { duration: 3000 });
+        return;
+      }
       // Notificar al Service Worker que salte la espera y active la nueva versión.
       // La recarga la dispara el listener de 'controllerchange'.
-      worker.postMessage({ type: 'SKIP_WAITING' });
+      target.postMessage({ type: 'SKIP_WAITING' });
       toast('Actualizando…', { duration: 2000 });
     },
   });
