@@ -58,6 +58,11 @@ let registration = null; // lo consultamos al confirmar, por si el worker quedó
 function registerServiceWorker() {
   if (!('serviceWorker' in navigator)) return;
 
+  // Snapshot del control al cargar la página. El worker que se acaba de
+  // instalar sirve el mismo contenido que ya tenemos delante, así que recargar
+  // solo haría saltar la app; recargamos cuando veníamos de otra versión.
+  let hadController = !!navigator.serviceWorker.controller;
+
   window.addEventListener('load', async () => {
     try {
       const reg = await navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' });
@@ -87,7 +92,12 @@ function registerServiceWorker() {
   // Cuando el nuevo SW toma control, recargar una sola vez
   let refreshing = false;
   navigator.serviceWorker.addEventListener('controllerchange', () => {
-    if (refreshing) return;
+    // Recargamos solo si la página ya estaba controlada: si no lo estaba, el
+    // worker que acaba de activarse sirve el mismo contenido que ya tenemos
+    // delante y recargar solo hace saltar la app.
+    const veníamosControlados = hadController;
+    hadController = true; // para un eventual update posterior en esta misma visita
+    if (!veníamosControlados || refreshing) return;
     refreshing = true;
     window.location.reload();
   });
