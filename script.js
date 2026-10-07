@@ -2,6 +2,7 @@ import { load } from './js/state.js';
 import { updateProvinceFilter, updateTopbarCount } from './js/utils.js';
 import { renderList } from './js/views/list.js';
 import { initPWA } from './js/pwa.js';
+import { initBackup } from './js/backup-ui.js';
 
 // Inicialización de la aplicación
 document.addEventListener('DOMContentLoaded', () => {
@@ -10,4 +11,5 @@ document.addEventListener('DOMContentLoaded', () => {
   updateTopbarCount(repairs.length);
   renderList();
   initPWA();
+  initBackup();
 });
