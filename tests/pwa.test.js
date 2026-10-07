@@ -163,6 +163,30 @@ describe('pwa: aviso de nueva versión', () => {
     assert.equal(btn.textContent, 'Actualizar');
   });
 
+  test('no recarga en la primera instalación (la página no estaba controlada)', async () => {
+    // clients.claim() dispara controllerchange también al instalar por primera
+    // vez: recargar ahí hace saltar la app sin motivo.
+    const { container } = setup({ registration, controller: null });
+    await boot({ container });
+
+    container.emit('controllerchange');
+
+    assert.equal(env.reloads(), 0);
+  });
+
+  test('en la primera visita, un update posterior sí recarga', async () => {
+    // La primera instalación no recarga (no hay controller previo), pero si
+    // más tarde el usuario acepta un update, esa recarga tiene que pasar.
+    const { container } = setup({ registration, controller: null });
+    await boot({ container });
+
+    container.emit('controllerchange'); // install + claim
+    assert.equal(env.reloads(), 0);
+
+    container.emit('controllerchange'); // update aceptado
+    assert.equal(env.reloads(), 1, 'el update tiene que recargar igual');
+  });
+
   test('recarga una sola vez cuando el nuevo worker toma el control', async () => {
     const { container } = setup({ registration });
     await boot({ container });

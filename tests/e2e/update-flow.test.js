@@ -28,9 +28,18 @@ describe('e2e: ciclo de actualización con service worker real', { skip: skipRea
     site = createSite();
     server = await site.start();
     context = await browser.newContext();
+    // Cuenta navegaciones (incluidas las recargas) para poder afirmar cuántas
+    // hubo. Va en sessionStorage porque window se reinicia en cada recarga.
+    await context.addInitScript(() => {
+      const n = Number(sessionStorage.getItem('__navs') || 0) + 1;
+      sessionStorage.setItem('__navs', String(n));
+      window.__navigations = n;
+    });
     page = await context.newPage();
     page.on('pageerror', (err) => console.error('  [page error]', err.message));
   });
+
+  const navigations = () => page.evaluate(() => window.__navigations);
 
   afterEach(async () => {
     await context?.close();
@@ -83,6 +92,10 @@ describe('e2e: ciclo de actualización con service worker real', { skip: skipRea
 
   test('instala el service worker y precachea el app shell completo', async () => {
     await openApp();
+
+    // Instalar por primera vez no debe recargar la página: clients.claim()
+    // dispara controllerchange y no hay nada nuevo que cargar.
+    assert.equal(await navigations(), 1, 'la primera instalación no debe recargar');
 
     const keys = await caches_();
     assert.deepEqual(keys, [`tecnoficha-shell-${site.version()}`]);
@@ -156,6 +169,9 @@ describe('e2e: ciclo de actualización con service worker real', { skip: skipRea
     // El caché viejo se limpió en activate
     assert.deepEqual(await caches_(), [`tecnoficha-shell-${site.version()}`]);
     assert.notEqual(site.version(), v1);
+
+    // Una sola recarga, la del update (ya contada al abrir la app)
+    assert.equal(await navigations(), 2, 'el update debe recargar exactamente una vez');
 
     // Y el toast no quedó pegado
     assert.equal((await toastState()).shown, false);

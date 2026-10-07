@@ -66,18 +66,23 @@ Para volver a disparar el prompt de instalación: desinstalá la PWA, en DevTool
 
 ```bash
 pnpm install                # devDependencies: jsdom y playwright-core
-pnpm test                   # todo: 37 tests (~13 s)
-pnpm test:unit              # 33 tests, sin navegador
-pnpm test:e2e               # 4 tests en Chromium
+pnpm test                   # todo: 103 tests (~20 s)
+pnpm test:unit              # 91 tests, sin navegador
+pnpm test:e2e               # 12 tests en Chromium
 ```
 
 Tres capas:
 
 - `tests/toast.test.js` y `tests/pwa.test.js`: unitarios sobre jsdom con el `index.html` real,
   así que un id renombrado rompe los tests.
+- `tests/validators.test.js`: los `sanitize*` / `validate*` de `js/utils.js` (puros, sin DOM):
+  obligatorios, formatos, fechas imposibles, teléfono, RAM, monto y escapado de HTML.
+- `tests/state.test.js` y `tests/form.test.js`: la capa de datos. Fijan la clave `tecnificha_v1` de
+  `localStorage` (cambiarla haría perder los registros) y cubren guardar, editar y borrar.
 - `tests/static.test.js`: que los archivos del `PRECACHE` existan, que los `@import` de
   `css/main.css` no estén rotos, que `VERSION` de `sw.js` esté sincronizada con `package.json`
   y que no queden referencias al banner eliminado.
+- `tests/e2e/data-flow.test.js`: guardar una reparación y que siga ahí al recargar, incluso sin red.
 - `tests/e2e/update-flow.test.js`: el ciclo de actualización completo en Chromium de verdad
   (install → waiting → toast → `SKIP_WAITING` → activate → recarga), más que la app abra
   offline. Simula el deploy copiando el sitio a un temp y bumpeando `VERSION`.

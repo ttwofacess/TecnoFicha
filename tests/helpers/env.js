@@ -24,6 +24,9 @@ export function setupDom() {
   // pasar el load y los listeners quedan registrados dos veces.
   const loaded = new Promise((resolve) => window.addEventListener('load', resolve, { once: true }));
 
+  // jsdom no implementa scrollTo (navigation.js lo llama en cada cambio de página)
+  window.scrollTo = () => {};
+
   // jsdom no implementa matchMedia (lo usa js/pwa.js)
   window.matchMedia = (query) => ({
     matches: false,
@@ -50,7 +53,7 @@ export function setupDom() {
   Object.defineProperty(globalThis, 'setTimeout', { value: trackedSetTimeout, configurable: true, writable: true });
 
   const prev = {};
-  for (const key of ['window', 'document', 'navigator', 'matchMedia', 'CustomEvent', 'Event', 'HTMLElement']) {
+  for (const key of ['window', 'document', 'navigator', 'matchMedia', 'localStorage', 'CustomEvent', 'Event', 'HTMLElement']) {
     prev[key] = globalThis[key];
     // Node 24 define `navigator` como getter: hay que redefinir la propiedad.
     Object.defineProperty(globalThis, key, {
