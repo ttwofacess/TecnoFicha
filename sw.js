@@ -1,4 +1,4 @@
-const VERSION = '1.1.2'; // ⚠️ subir en cada release que cambie archivos
+const VERSION = '1.2.0'; // ⚠️ subir en cada release que cambie archivos
 const SHELL_CACHE = `tecnoficha-shell-${VERSION}`;
 
 const PRECACHE = [
@@ -47,6 +47,8 @@ const PRECACHE = [
   './js/utils.js',
   './js/navigation.js',
   './js/pwa.js',
+  './js/backup.js',
+  './js/backup-ui.js',
   './js/views/list.js',
   './js/views/form.js',
   './js/views/detail.js',

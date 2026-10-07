@@ -129,3 +129,55 @@ export function applyImport(mode) {
   const n = repairs.length;
   toast(`Importación lista: ${n} registro${n !== 1 ? 's' : ''} ✓`);
 }
+
+/* ---------- Cableado ---------- */
+
+const $ = (id) => document.getElementById(id);
+
+/** Texto del resumen del diálogo. Se arma con textContent: nunca es HTML. */
+export function importSummaryText({ total, added, updated, existing, invalid }) {
+  const partes = [`${total} registro${total !== 1 ? 's' : ''}: ${added} nuevo${added !== 1 ? 's' : ''}`];
+  if (updated) partes.push(`${updated} se actualizan`);
+  if (existing > 0) partes.push(`${existing} ya existen`);
+
+  let msg = `El archivo trae ${partes.join(', ')}.`;
+  if (invalid) msg += ` ${invalid} inválido${invalid !== 1 ? 's' : ''} se omitieron.`;
+  msg += ' "Reemplazar todo" borra lo que tenés ahora.';
+  return msg;
+}
+
+function openImportDialog(resumen) {
+  const dlg = $('import-dialog');
+  if (!dlg) return;
+  $('import-summary').textContent = importSummaryText(resumen);
+  dlg.showModal();
+}
+
+async function onFileChosen(e) {
+  const input = e.target;
+  const file = input.files?.[0];
+  input.value = ''; // permite volver a elegir el mismo archivo después
+
+  if (!file) return;
+
+  try {
+    openImportDialog(await readBackupFile(file));
+  } catch (err) {
+    toast(err.message || 'No se pudo leer el archivo');
+  }
+}
+
+export function initBackup() {
+  $('backup-export-btn')?.addEventListener('click', exportBackup);
+  $('backup-import-btn')?.addEventListener('click', () => $('backup-file-input')?.click());
+  $('backup-file-input')?.addEventListener('change', onFileChosen);
+
+  const dlg = $('import-dialog');
+  $('import-merge-btn')?.addEventListener('click', () => { dlg?.close(); applyImport('merge'); });
+  $('import-replace-btn')?.addEventListener('click', () => { dlg?.close(); applyImport('replace'); });
+  $('import-cancel-btn')?.addEventListener('click', () => { cancelImport(); dlg?.close(); });
+
+  // Esc o el botón "atrás" del navegador: el diálogo se cierra solo, pero lo
+  // que había preparado para importar tiene que descartarse igual.
+  dlg?.addEventListener('cancel', cancelImport);
+}

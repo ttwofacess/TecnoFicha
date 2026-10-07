@@ -1,6 +1,6 @@
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync, existsSync } from 'node:fs';
+import { readFileSync, existsSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { JSDOM } from 'jsdom';
 
@@ -85,6 +85,24 @@ describe('integridad del sitio estático', () => {
     const pkg = JSON.parse(read('package.json'));
     const sw = read('sw.js').match(/const VERSION = '([^']+)'/)[1];
     assert.equal(pkg.version, sw, 'package.json y sw.js están desincronizados');
+  });
+
+  test('todo módulo js/ está en la precache del service worker', () => {
+    // El test anterior solo verifica que lo listado exista. El riesgo real es
+    // al revés: olvidar un módulo nuevo en la precache rompe el modo offline
+    // sin dar ningún error visible.
+    const sw = read('sw.js');
+    const block = sw.match(/const PRECACHE = \[([\s\S]*?)\];/);
+    assert.ok(block, 'no se encontró el array PRECACHE en sw.js');
+    const urls = new Set([...block[1].matchAll(/'([^']+)'/g)].map((m) => m[1]));
+
+    const orphans = [];
+    for (const dir of ['js', 'js/views']) {
+      for (const name of readdirSync(new URL(dir, ROOT))) {
+        if (name.endsWith('.js') && !urls.has(`./${dir}/${name}`)) orphans.push(`./${dir}/${name}`);
+      }
+    }
+    assert.deepEqual(orphans, [], `módulos js ausentes de la precache: ${orphans.join(', ')}`);
   });
 
   test('el index.html tiene los ids que espera js/backup-ui.js', () => {
