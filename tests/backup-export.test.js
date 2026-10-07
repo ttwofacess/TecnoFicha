@@ -194,7 +194,13 @@ describe('exportar respaldo', () => {
     assert.ok(json.exportedAt);
   });
 
-  test('el botón todavía no existe en el HTML (llega en la fase de UI)', () => {
-    assert.equal(env.el('backup-export-btn'), null);
+  test('el botón está en el HTML pero todavía no está cableado', () => {
+    // El cableado (initBackup) llega en la fase siguiente: por ahora el botón
+    // existe en el DOM pero no tiene listener, así que no dispara nada.
+    const btn = env.el('backup-export-btn');
+    assert.ok(btn, 'falta el botón Exportar');
+
+    btn.click();
+    assert.equal(dl.calls.length, 0);
   });
 });

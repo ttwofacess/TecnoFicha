@@ -2,6 +2,7 @@ import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
+import { JSDOM } from 'jsdom';
 
 const ROOT = new URL('../', import.meta.url);
 const read = (path) => readFileSync(new URL(path, ROOT), 'utf8');
@@ -84,5 +85,67 @@ describe('integridad del sitio estático', () => {
     const pkg = JSON.parse(read('package.json'));
     const sw = read('sw.js').match(/const VERSION = '([^']+)'/)[1];
     assert.equal(pkg.version, sw, 'package.json y sw.js están desincronizados');
+  });
+
+  test('el index.html tiene los ids que espera js/backup-ui.js', () => {
+    const html = read('index.html');
+    for (const id of [
+      'backup-export-btn', 'backup-import-btn', 'backup-file-input',
+      'import-dialog', 'import-summary', 'import-merge-btn', 'import-replace-btn', 'import-cancel-btn',
+    ]) {
+      assert.match(html, new RegExp(`id="${id}"`), `falta el id ${id} en index.html`);
+    }
+  });
+
+  test('los botones de respaldo están fuera de #stats-container', () => {
+    // renderStats() reescribe #stats-container con innerHTML en cada visita:
+    // un botón dentro desaparecería al abrir el Resumen. Se chequea con el
+    // DOM real, no con una expresión regular sobre el HTML.
+    const dom = new JSDOM(read('index.html'), { url: 'https://example.test/' });
+    const container = dom.window.document.getElementById('stats-container');
+
+    assert.ok(container, 'no se encontró #stats-container en index.html');
+    assert.equal(container.querySelector('#backup-export-btn'), null);
+    assert.equal(container.querySelector('#backup-import-btn'), null);
+    assert.equal(container.querySelector('#backup-file-input'), null);
+
+    // Y los botones tienen que estar en la misma página que el contenedor.
+    const page = dom.window.document.getElementById('page-stats');
+    assert.ok(page.contains(dom.window.document.getElementById('backup-export-btn')));
+    assert.ok(page.contains(dom.window.document.getElementById('backup-import-btn')));
+    dom.window.close();
+  });
+
+  test('el diálogo de importación existe y está bien armado', () => {
+    const dom = new JSDOM(read('index.html'), { url: 'https://example.test/' });
+    const doc = dom.window.document;
+    const dlg = doc.getElementById('import-dialog');
+
+    assert.ok(dlg, 'falta el diálogo de importación');
+    assert.match(dlg.outerHTML, /<dialog/);
+    // Reutiliza el estilo del diálogo de iOS.
+    assert.ok(dlg.classList.contains('pwa-dialog'));
+    // Los tres botones, y el que reemplaza todo tiene que verse destructivo.
+    assert.ok(doc.getElementById('import-replace-btn').classList.contains('btn-danger'));
+    assert.ok(doc.getElementById('import-merge-btn').classList.contains('btn-primary'));
+    // El resumen arranca vacío: se arma con textContent al importar.
+    assert.equal(doc.getElementById('import-summary').textContent.trim(), '');
+    dom.window.close();
+  });
+
+  test('el input de archivo del respaldo está oculto y acepta json', () => {
+    const html = read('index.html');
+    const input = html.match(/<input[^>]*id="backup-file-input"[^>]*>/);
+    assert.ok(input, 'falta el input de archivo del respaldo');
+    assert.match(input[0], /type="file"/);
+    assert.match(input[0], /hidden/);
+    assert.match(input[0], /accept="[^"]*json/);
+  });
+
+  test('css/pages/stats.css define las clases del respaldo', () => {
+    const css = read('css/pages/stats.css');
+    for (const selector of ['.backup-wrap', '.backup-hint', '.backup-actions', '#import-summary']) {
+      assert.ok(css.includes(selector), `falta ${selector} en css/pages/stats.css`);
+    }
   });
 });

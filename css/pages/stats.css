@@ -77,3 +77,31 @@
   min-width: 20px;
   text-align: right;
 }
+
+/* ---------- Respaldo de datos ---------- */
+
+.backup-wrap { padding-top: 0; }
+
+.backup-block { padding: 16px; }
+
+.backup-hint {
+  font-size: 13px;
+  color: var(--text2);
+  line-height: 1.5;
+  margin: 0 0 12px;
+}
+
+.backup-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.backup-actions .btn { margin-bottom: 0; }
+
+#import-summary {
+  color: var(--text2);
+  font-size: 14px;
+  line-height: 1.5;
+  margin-bottom: 16px;
+}

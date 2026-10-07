@@ -200,7 +200,24 @@
 
     <!-- STATS PAGE -->
     <div class="page" id="page-stats">
+      <!-- renderStats() reescribe #stats-container por completo en cada visita,
+           así que la sección de respaldo va como hermana, nunca adentro. -->
       <div class="stats-wrap" id="stats-container"></div>
+
+      <div class="stats-wrap backup-wrap">
+        <div class="stat-label">RESPALDO DE DATOS</div>
+        <div class="info-block backup-block">
+          <p class="backup-hint">
+            Guardá una copia de tus registros en un archivo y llevala a otro lugar
+            (Drive, mail, otra compu). Los datos solo viven en este navegador.
+          </p>
+          <div class="backup-actions">
+            <button type="button" class="btn" id="backup-export-btn">⬇ Exportar</button>
+            <button type="button" class="btn" id="backup-import-btn">⬆ Importar</button>
+          </div>
+          <input type="file" id="backup-file-input" accept="application/json,.json" hidden>
+        </div>
+      </div>
     </div>
 
   </div><!-- /content -->
@@ -227,6 +244,15 @@
     <li>Confirmá con <strong>Agregar</strong>.</li>
   </ol>
   <button type="button" class="btn btn-primary" id="ios-install-close">Entendido</button>
+</dialog>
+
+<!-- Confirmación de importación:combinar con lo que hay, o reemplazar todo -->
+<dialog id="import-dialog" class="pwa-dialog">
+  <h2>Importar respaldo</h2>
+  <p id="import-summary"></p>
+  <button type="button" class="btn btn-primary" id="import-merge-btn">Combinar con mis datos</button>
+  <button type="button" class="btn btn-danger" id="import-replace-btn">Reemplazar todo</button>
+  <button type="button" class="btn" id="import-cancel-btn">Cancelar</button>
 </dialog>
 
 <!-- Avisos flotantes (toast): mensajes temporales y aviso de nueva versión -->
