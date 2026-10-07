@@ -65,14 +65,25 @@ Para volver a disparar el prompt de instalación: desinstalá la PWA, en DevTool
 ## Tests
 
 ```bash
-pnpm install     # solo la devDependency jsdom
-pnpm test        # node:test, 29 tests
+pnpm install                # devDependencies: jsdom y playwright-core
+pnpm test                   # todo: 33 tests (~12 s)
+pnpm test:unit              # 29 tests, sin navegador
+pnpm test:e2e               # 4 tests en Chromium
 ```
 
-`tests/static.test.js` cubre las partes donde nada más te salva: que todos los archivos del
-`PRECACHE` existan, que los `@import` de `css/main.css` no estén rotos y que `VERSION` de `sw.js`
-esté sincronizada con `package.json`. Los de `js/pwa.js` y del toast corren contra el
-`index.html` real en jsdom, así que un id renombrado rompe los tests.
+Tres capas:
+
+- `tests/toast.test.js` y `tests/pwa.test.js`: unitarios sobre jsdom con el `index.html` real,
+  así que un id renombrado rompe los tests.
+- `tests/static.test.js`: que los archivos del `PRECACHE` existan, que los `@import` de
+  `css/main.css` no estén rotos, que `VERSION` de `sw.js` esté sincronizada con `package.json`
+  y que no queden referencias al banner eliminado.
+- `tests/e2e/update-flow.test.js`: el ciclo de actualización completo en Chromium de verdad
+  (install → waiting → toast → `SKIP_WAITING` → activate → recarga), más que la app abra
+  offline. Simula el deploy copiando el sitio a un temp y bumpeando `VERSION`.
+
+Los e2e necesitan un Chromium: lo busca en la caché de Playwright, en el PATH, o podés
+forzar `CHROMIUM_PATH=/ruta/al/chrome`. Si no hay ninguno se **saltan** (`skip`), no fallan.
 
 ## Pendientes conocidos
 
