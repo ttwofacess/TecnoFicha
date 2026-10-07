@@ -1,4 +1,4 @@
-const VERSION = '1.1.1'; // ⚠️ subir en cada release que cambie archivos
+const VERSION = '1.1.2'; // ⚠️ subir en cada release que cambie archivos
 const SHELL_CACHE = `tecnoficha-shell-${VERSION}`;
 
 const PRECACHE = [

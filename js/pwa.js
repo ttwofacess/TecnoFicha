@@ -53,12 +53,20 @@ function setupInstall() {
 }
 
 /* ---------- Service worker + actualizaciones ---------- */
+let registration = null; // lo consultamos al confirmar, por si el worker quedó viejo
+
 function registerServiceWorker() {
   if (!('serviceWorker' in navigator)) return;
+
+  // Snapshot del control al cargar la página. El worker que se acaba de
+  // instalar sirve el mismo contenido que ya tenemos delante, así que recargar
+  // solo haría saltar la app; recargamos cuando veníamos de otra versión.
+  let hadController = !!navigator.serviceWorker.controller;
 
   window.addEventListener('load', async () => {
     try {
       const reg = await navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' });
+      registration = reg;
 
       // Ya había una versión nueva esperando
       if (reg.waiting && navigator.serviceWorker.controller) showUpdate(reg.waiting);
@@ -84,7 +92,12 @@ function registerServiceWorker() {
   // Cuando el nuevo SW toma control, recargar una sola vez
   let refreshing = false;
   navigator.serviceWorker.addEventListener('controllerchange', () => {
-    if (refreshing) return;
+    // Recargamos solo si la página ya estaba controlada: si no lo estaba, el
+    // worker que acaba de activarse sirve el mismo contenido que ya tenemos
+    // delante y recargar solo hace saltar la app.
+    const veníamosControlados = hadController;
+    hadController = true; // para un eventual update posterior en esta misma visita
+    if (!veníamosControlados || refreshing) return;
     refreshing = true;
     window.location.reload();
   });
@@ -95,9 +108,16 @@ function showUpdate(worker) {
     persistent: true,
     actionText: 'Actualizar',
     onAction: () => {
+      // Si llegó otra versión mientras el usuario decidía, el worker que tenemos
+      // quedó redundante y su SKIP_WAITING no haría nada: activamos el que esté esperando.
+      const target = worker.state === 'redundant' ? registration?.waiting : worker;
+      if (!target) {
+        toast('No se pudo actualizar. Recargá la app.', { duration: 3000 });
+        return;
+      }
       // Notificar al Service Worker que salte la espera y active la nueva versión.
       // La recarga la dispara el listener de 'controllerchange'.
-      worker.postMessage({ type: 'SKIP_WAITING' });
+      target.postMessage({ type: 'SKIP_WAITING' });
       toast('Actualizando…', { duration: 2000 });
     },
   });

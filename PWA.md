@@ -8,8 +8,9 @@ App 100 % estática (HTML + CSS + JS con módulos ES, sin build). Los datos vive
 | Archivo | Rol |
 |---|---|
 | `sw.js` | Service worker. Precaché del app shell + `VERSION` (ver releases). |
-| `js/pwa.js` | Registro del SW, botón de instalar, banner de actualización. |
-| `css/pwa.css` | Estilos del botón instalar, diálogo iOS y banner de actualización. |
+| `js/pwa.js` | Registro del SW, botón de instalar y aviso de nueva versión (toast). |
+| `css/pwa.css` | Estilos del botón instalar y del diálogo iOS. |
+| `css/components/toast.css` | Estilos del toast y de su variante `.persistent` (aviso de versión). |
 | `icons/` | Íconos 192/512 PNG, 180 apple-touch y el SVG fuente. |
 | `fonts/` | DM Sans y DM Mono autoalojadas (OFL 1.1) para offline. |
 | `site.webmanifest` | Manifest con `start_url`/`scope` relativos: funciona en raíz de dominio o subpath. |
@@ -26,7 +27,7 @@ Cada vez que cambies **cualquier** archivo listado en `PRECACHE` de `sw.js`:
    lista `PRECACHE`: si falta un archivo, el `install` del SW falla entero y la app pierde
    el modo offline; si sobra uno que ya no existe, pasa lo mismo.
 3. Desplegá en Cloudflare Pages.
-4. Los usuarios verán el banner "Hay una nueva versión disponible" la próxima vez que abran
+4. Los usuarios verán un toast persistente "Nueva versión disponible" la próxima vez que abran
    la app; al tocar **Actualizar** se activa el SW nuevo y se recarga una sola vez.
 
 > Olvidar el paso 1 es el error más común: el SW no se reinstala y todos siguen viendo la
@@ -55,11 +56,39 @@ Después, en Chrome DevTools → **Application**:
 
 - *Manifest*: sin errores, íconos previsualizados, "Installability" sin problemas.
 - *Service Workers*: **activated and is running**.
-- *Cache Storage*: existe `tecnoficha-shell-<VERSION>` con los 40 archivos del `PRECACHE`.
+- *Cache Storage*: existe `tecnoficha-shell-<VERSION>` con los 41 archivos del `PRECACHE`.
 - Marcá **Offline** en *Network* y recargá: la app debe abrir y mostrar los datos guardados.
 
 Para volver a disparar el prompt de instalación: desinstalá la PWA, en DevTools → Application
 → *Storage* → **Clear site data**, y recargá.
+
+## Tests
+
+```bash
+pnpm install                # devDependencies: jsdom y playwright-core
+pnpm test                   # todo: 103 tests (~20 s)
+pnpm test:unit              # 91 tests, sin navegador
+pnpm test:e2e               # 12 tests en Chromium
+```
+
+Tres capas:
+
+- `tests/toast.test.js` y `tests/pwa.test.js`: unitarios sobre jsdom con el `index.html` real,
+  así que un id renombrado rompe los tests.
+- `tests/validators.test.js`: los `sanitize*` / `validate*` de `js/utils.js` (puros, sin DOM):
+  obligatorios, formatos, fechas imposibles, teléfono, RAM, monto y escapado de HTML.
+- `tests/state.test.js` y `tests/form.test.js`: la capa de datos. Fijan la clave `tecnificha_v1` de
+  `localStorage` (cambiarla haría perder los registros) y cubren guardar, editar y borrar.
+- `tests/static.test.js`: que los archivos del `PRECACHE` existan, que los `@import` de
+  `css/main.css` no estén rotos, que `VERSION` de `sw.js` esté sincronizada con `package.json`
+  y que no queden referencias al banner eliminado.
+- `tests/e2e/data-flow.test.js`: guardar una reparación y que siga ahí al recargar, incluso sin red.
+- `tests/e2e/update-flow.test.js`: el ciclo de actualización completo en Chromium de verdad
+  (install → waiting → toast → `SKIP_WAITING` → activate → recarga), más que la app abra
+  offline. Simula el deploy copiando el sitio a un temp y bumpeando `VERSION`.
+
+Los e2e necesitan un Chromium: lo busca en la caché de Playwright, en el PATH, o podés
+forzar `CHROMIUM_PATH=/ruta/al/chrome`. Si no hay ninguno se **saltan** (`skip`), no fallan.
 
 ## Pendientes conocidos
 

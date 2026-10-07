@@ -448,8 +448,11 @@ export function toast(msg, options = {}) {
   };
 
   // Un aviso temporal puede pisar al persistente (ej. "Registro eliminado"),
-  // pero lo guardamos para restaurarlo apenas el temporal se vaya.
-  shadowToast = toastState?.persistent ? toastState : null;
+  // pero lo guardamos para restaurarlo apenas el temporal se vaya. Ojo: si
+  // llegan dos temporales seguidos, el segundo NO puede borrar el shadow, o el
+  // aviso de versión se pierde para siempre.
+  if (opts.persistent) shadowToast = null; // un persistente nuevo reemplaza al anterior
+  else if (toastState?.persistent) shadowToast = toastState;
 
   renderToast(msg, opts);
 
