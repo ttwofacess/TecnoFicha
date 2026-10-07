@@ -133,6 +133,32 @@ describe('toast()', () => {
       assert.equal(calls, 1, 'no debe quedar un listener del aviso viejo');
     });
 
+    test('varios avisos temporales seguidos no pierden el persistente', async () => {
+      const { box, msg, btn } = ui();
+      showUpdate();
+
+      // Dos temporales que se pisan entre sí: el segundo no debe borrar el
+      // aviso de versión que quedó apartado.
+      toast('Reparación guardada ✓', { duration: 120 });
+      toast('Registro eliminado', { duration: 60 });
+      assert.equal(msg.textContent, 'Registro eliminado');
+
+      await sleep(200);
+      assert.equal(msg.textContent, 'Nueva versión disponible', 'el aviso de versión debe volver');
+      assert.ok(box.classList.contains('persistent'));
+      assert.equal(btn.hidden, false);
+    });
+
+    test('un persistente nuevo invalida el que estaba apartado', async () => {
+      const { msg } = ui();
+      showUpdate();
+      toast('Registro eliminado', { duration: 20 });
+      toast('Otra versión', { persistent: true, actionText: 'Actualizar', onAction: () => {} });
+
+      await sleep(80);
+      assert.equal(msg.textContent, 'Otra versión', 'no debe volver el aviso viejo');
+    });
+
     test('no duplica listeners aunque se re-renderice', () => {
       let calls = 0;
       const { btn } = ui();

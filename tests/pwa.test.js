@@ -110,6 +110,41 @@ describe('pwa: aviso de nueva versión', () => {
     assert.deepEqual(worker.messages, [{ type: 'SKIP_WAITING' }]);
   });
 
+  test('si el worker quedó redundante, activa el que está esperando', async () => {
+    // Llegó una v3 mientras el usuario decidía: el worker del aviso quedó
+    // redundante y su SKIP_WAITING no haría nada.
+    const viejo = fakeWorker();
+    registration = fakeRegistration({ waiting: viejo });
+    const { container } = setup({ registration });
+    await boot({ container });
+
+    const nuevo = fakeWorker();
+    registration.waiting = nuevo;
+    viejo.state = 'redundant';
+
+    ui().btn.click();
+
+    assert.deepEqual(viejo.messages, [], 'no hay que ACTIVAR un worker redundante');
+    assert.deepEqual(nuevo.messages, [{ type: 'SKIP_WAITING' }]);
+    assert.equal(env.el('toast-message').textContent, 'Actualizando…');
+  });
+
+  test('si no queda ningún worker esperando, avisa que no pudo actualizar', async () => {
+    const viejo = fakeWorker();
+    registration = fakeRegistration({ waiting: viejo });
+    const { container } = setup({ registration });
+    await boot({ container });
+
+    viejo.state = 'redundant';
+    registration.waiting = null;
+
+    ui().btn.click();
+
+    assert.deepEqual(viejo.messages, []);
+    assert.equal(env.el('toast-message').textContent, 'No se pudo actualizar. Recargá la app.');
+    assert.equal(env.el('toast').classList.contains('persistent'), false);
+  });
+
   test('avisa cuando termina de instalar una versión nueva (updatefound)', async () => {
     const { container } = setup({ registration });
     await boot({ container });

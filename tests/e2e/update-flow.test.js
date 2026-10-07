@@ -161,7 +161,7 @@ describe('e2e: ciclo de actualización con service worker real', { skip: skipRea
     assert.equal((await toastState()).shown, false);
   });
 
-  test('un aviso temporal no borra el de nueva versión', async () => {
+  test('varios avisos temporales seguidos no borran el de nueva versión', async () => {
     await openApp();
     await site.deploy();
 
@@ -171,14 +171,20 @@ describe('e2e: ciclo de actualización con service worker real', { skip: skipRea
     });
     await page.waitForSelector('#toast.persistent', { timeout: 20000 });
 
-    // Mismo toast() que usa la app, ejecutado en la página
-    await page.evaluate(async () => {
+    // Mismo toast() que usa la app, ejecutado en la página. Dos avisos que se
+    // pisan entre sí: el segundo no debe borrar el aviso de versión apartado.
+    await evaluate(async () => {
       const { toast } = await import('./js/utils.js');
-      toast('Registro eliminado', { duration: 800 });
+      toast('Reparación guardada ✓', { duration: 1200 });
+      setTimeout(() => toast('Registro eliminado', { duration: 400 }), 200);
     });
 
+    await page.waitForFunction(
+      () => document.getElementById('toast-message').textContent === 'Registro eliminado',
+      null,
+      { timeout: 5000 },
+    );
     let state = await toastState();
-    assert.equal(state.message, 'Registro eliminado');
     assert.equal(state.persistent, false);
     assert.equal(state.actionVisible, false);
 

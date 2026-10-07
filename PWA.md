@@ -66,8 +66,8 @@ Para volver a disparar el prompt de instalación: desinstalá la PWA, en DevTool
 
 ```bash
 pnpm install                # devDependencies: jsdom y playwright-core
-pnpm test                   # todo: 33 tests (~12 s)
-pnpm test:unit              # 29 tests, sin navegador
+pnpm test                   # todo: 37 tests (~13 s)
+pnpm test:unit              # 33 tests, sin navegador
 pnpm test:e2e               # 4 tests en Chromium
 ```
 
